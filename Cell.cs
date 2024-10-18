@@ -8,6 +8,10 @@ namespace Battleship
 {
     public class Cell
     {
+        public int Row { get; set; }
+        public int Column { get; set; }
+
+        public Cell(int row, int column) { Row = row; Column = column; }
         public bool IsHit { get; set; } //Checks to see if the cell has been hit.
         public Ship Ship { get; set; } //Refers to a ship if there is one.
 
