@@ -9,16 +9,17 @@ namespace Battleship
     public class Grid
     {
         private const int GridSize = 10; //The size of the game board (10x10)
-        private Cell[,] cells;
+        public List<Cell> Grids { get; set; }
+        
 
         public Grid()
         {
-            cells = new Cell[GridSize, GridSize];
+            Grids = new List<Cell>();
             for (int row = 0; row < GridSize; row++)
             {
                 for (int col = 0; col < GridSize; col++)
                 {
-                    cells[row, col] = new Cell(); //Initiates every cell
+                    Grids.Add(new Cell(row, col));
                 }
             }
         }
