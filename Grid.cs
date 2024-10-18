@@ -33,42 +33,54 @@ namespace Battleship
 
                 for (int col = 0; col < GridSize; col++)
                 {
-                    var cell = cells[row, col];
-                    if (cell.IsHit)
+                    int index = row * GridSize + col; //??????
+                    var cell = Grids[index];
+
+                    switch (cell)
                     {
-                        if (cell.Ship != null)
-                        {
-                            Console.Write("X "); //Ship hit
-                        }
-                        else
-                        {
-                            Console.Write("M "); //Miss (cell without ship)
-                        }
-                    }
-                    else
-                    {
-                        if (cell.Ship != null)
-                        {
-                            Console.Write("O "); //Ship that has not been hit
-                        }
-                        else
-                        {
-                            Console.Write("~ "); //Empty water
-                        }
+                        case { IsHit: true, Ship: { } }:
+                            Console.Write("X ");
+                            break;
+                        case { IsHit: true, Ship: null }: 
+                            Console.Write("M ");          
+                            break;
+                        case { IsHit: false, Ship: { } }: 
+                            Console.Write("O ");         
+                            break;
+                        case { IsHit: false, Ship: null }: 
+                            Console.Write("~ ");          
+                            break;
                     }
                 }
+                Console.WriteLine(); //New row after each row of cells
+            }
+        }
+        public void PlaceTestShip(int row, int col)
+        {
+            // Validate the row and col inputs are within range
+            if (row < 1 || row > GridSize || col < 1 || col > GridSize) //Make this logic in a seperate method
+            {
+                Console.WriteLine("Invalid coordinates. Please enter values between 1 and " + GridSize);
+                return;
             }
 
-            Console.WriteLine(); //New row after each row of cells
-        }
-        public void PlaceTestShip(int row, int col) //Testmethod to place a ship in a specific spot
-        {
-            cells[row, col].Ship = new Ship { Length = 3 };
+            // Subtract 1 from row and col to convert 1-based input to 0-based index
+            int index = (row - 1) * GridSize + (col - 1);
+            Grids[index].Ship = new Ship { Length = 3 };
         }
 
-        public void ShootTest(int row, int col) //Testmethod to shoot a specific cell
+        public void ShootTest(int row, int col)
         {
-            cells[row, col].IsHit = true;
+            // Validate the row and col inputs are within range
+            if (row < 1 || row > GridSize || col < 1 || col > GridSize) //Make this logic in a seperate method
+            {
+                Console.WriteLine("Invalid coordinates. Please enter values between 1 and " + GridSize);
+                return;
+            }
+
+            // Subtract 1 from row and col to convert 1-based input to 0-based index
+            int index = (row - 1) * GridSize + (col - 1);
+            Grids[index].IsHit = true;
         }
     }
 }
