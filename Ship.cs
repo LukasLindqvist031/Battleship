@@ -8,6 +8,6 @@ namespace Battleship
 {
     public class Ship
     {
-        public int Lenght { get; set; }
+        public int Length { get; set; }
     }
 }
