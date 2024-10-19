@@ -8,6 +8,6 @@ namespace Battleship
 {
     public interface IPlayerAction
     {
-        void Execute(Player player); 
+        //void Execute(Player player); 
     }
 }

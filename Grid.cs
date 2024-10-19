@@ -4,7 +4,7 @@ namespace Battleship
 {
     public class Grid
     {
-        private const int GridSize = 10; 
+        public const int GridSize = 10; 
         public Cell[,] Grids { get; set; } 
 
         public Grid()

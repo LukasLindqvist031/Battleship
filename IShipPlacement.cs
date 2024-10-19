@@ -8,6 +8,6 @@ namespace Battleship
 {
     public interface IShipPlacement
     {
-        bool PlaceShipRandomly(Grid grid, Ship ship);
+        void PlaceShipRandomly(Grid grid, Ship ship);
     }
 }
