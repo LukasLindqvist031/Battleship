@@ -4,17 +4,17 @@ namespace Battleship
 {
     public class Grid
     {
-        private const int GridSize = 10; //The size of the game board (10x10)
-        public Cell[,] Grids { get; set; } // Use a 2D array instead of a list
+        private const int GridSize = 10; 
+        public Cell[,] Grids { get; set; } 
 
         public Grid()
         {
-            Grids = new Cell[GridSize, GridSize]; // Initialize the array
+            Grids = new Cell[GridSize, GridSize]; 
             for (int row = 0; row < GridSize; row++)
             {
                 for (int col = 0; col < GridSize; col++)
                 {
-                    Grids[row, col] = new Cell(row, col); // Initialize each cell in the array
+                    Grids[row, col] = new Cell(row, col); 
                 }
             }
         }
@@ -46,25 +46,23 @@ namespace Battleship
                             break;
                     }
                 }
-                Console.WriteLine(); // New row after each row of cells
+                Console.WriteLine(); 
             }
         }
 
         public void PlaceTestShip(int row, int col)
         {
-            // Validate the row and col inputs are within range
             if (!IsValidCoordinate(row, col))
             {
                 Console.WriteLine("Invalid coordinates. Please enter values between 1 and " + GridSize);
                 return;
             }
 
-            Grids[row - 1, col - 1].Ship = new Ship { Length = 3 };
+            Grids[row - 1, col - 1].Ship = new Ship(3);
         }
 
         public void ShootTest(int row, int col)
         {
-            // Validate the row and col inputs are within range
             if (!IsValidCoordinate(row, col))
             {
                 Console.WriteLine("Invalid coordinates. Please enter values between 1 and " + GridSize);
