@@ -19,34 +19,17 @@ namespace Battleship
             }
         }
 
-        public void PrintGrid()
+        public static void DisplayGrid(Grid grid)
         {
             Console.WriteLine("   A B C D E F G H I J");
-            for (int row = 0; row < GridSize; row++)
-            {
+            for (int row = 0; row < GridSize; row++) {
                 Console.Write((row + 1).ToString().PadLeft(2) + " ");
 
                 for (int col = 0; col < GridSize; col++)
                 {
-                    var cell = Grids[row, col]; 
-
-                    switch (cell)
-                    {
-                        case { IsHit: true, Ship: { } }:
-                            Console.Write("X ");
-                            break;
-                        case { IsHit: true, Ship: null }:
-                            Console.Write("M ");
-                            break;
-                        case { IsHit: false, Ship: { } }:
-                            Console.Write("O ");
-                            break;
-                        case { IsHit: false, Ship: null }:
-                            Console.Write("~ ");
-                            break;
-                    }
+                    Console.Write(grid.Grids[row, col].Mark);
                 }
-                Console.WriteLine(); 
+                Console.WriteLine();
             }
         }
 

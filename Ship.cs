@@ -21,7 +21,7 @@ namespace Battleship
 
         public bool IsSunk()
         {
-            return HitTaken > Length;
+            return HitTaken >= Length;
         }
 
         public void TakeHit()

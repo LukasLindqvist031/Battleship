@@ -11,7 +11,7 @@ namespace Battleship
     {
         private Random _random = new Random();
 
-        public void PlaceShipRandomly(Grid grid, Ship ship)
+        public void PlaceShipRandomly(Grid grid, Ship ship) //Om det finns ett skepp på platsen, ska det skrivas ut ett O, det ska inte behövas ändras manuellt. ÄNDRA!
         {
             bool placed = false;
 
@@ -28,11 +28,13 @@ namespace Battleship
                     {
                         if (vertical)
                         {
-                            grid.Grids[startRow + i, startColumn].Ship = ship; 
+                            grid.Grids[startRow + i, startColumn].Ship = ship;
+                            grid.Grids[startRow + i, startColumn].Mark = "O "; //Dupplicering ändra senare
                         }
                         else
                         {
-                            grid.Grids[startRow, startColumn + i].Ship = ship; 
+                            grid.Grids[startRow, startColumn + i].Ship = ship;
+                            grid.Grids[startRow, startColumn + i].Mark = "O "; //Dupplicering ändra senare
                         }
                     }
                     placed = true; 

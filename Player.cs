@@ -6,20 +6,25 @@ using System.Threading.Tasks;
 
 namespace Battleship
 {
-    abstract class Player
+    public abstract class Player
     {
         public string Name { get; set; }
         public Grid PlayerGrid { get; set; }
         public List<Ship> Ships { get; set; }
 
-        public Player(string name)
+        protected Player(string name, Grid grid, List<Ship> ships)
         {
             Name = name;
-            PlayerGrid = new Grid();
-            Ships = new List<Ship>();
+            PlayerGrid = grid;
+            Ships = ships;
         }
 
         public abstract void TakeAction(IPlayerAction action);
+
+        public void RemoveSunkShip(Ship ship)
+        {
+            if (Ships.Contains(ship)) {  Ships.Remove(ship); }
+        }
 
         public bool AreAllShipsSunk()
         {

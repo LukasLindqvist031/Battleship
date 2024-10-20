@@ -26,4 +26,4 @@ shipPlacementService.PlaceShipRandomly(grid, ship9);
 shipPlacementService.PlaceShipRandomly(grid, ship10);
 
 
-grid.PrintGrid();
+Grid.DisplayGrid(grid);
