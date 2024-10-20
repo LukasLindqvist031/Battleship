@@ -2,12 +2,13 @@
 using System.Collections.Generic;
 using System.ComponentModel.Design;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace Battleship
 {
-    internal class Attack : IPlayerAction
+    public class Attack<T> : IPlayerAction<T> where T : Player
     {
         private Grid _opponentGrid;
         private Cell _targetCell;
@@ -18,7 +19,7 @@ namespace Battleship
             _targetCell = targetCell;
         }
 
-        public void Execute(Player player)
+        public void Execute(T player)
         {
             if (_targetCell.IsHit)
             {

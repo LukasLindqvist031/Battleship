@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 
 namespace Battleship
 {
-    public interface IPlayerAction
+    public interface IPlayerAction<T> where T : Player
     {
-        void Execute(Player player); 
+        void Execute(T player); 
     }
 }

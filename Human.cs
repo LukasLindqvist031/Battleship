@@ -8,6 +8,9 @@ namespace Battleship
 {
     public class Human : Player
     {
-
+        public Human(string name, Grid grid, List<Ship> ships)
+            : base(name, grid, ships)
+        {
+        }
     }
 }

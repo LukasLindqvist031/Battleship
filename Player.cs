@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Battleship
 {
-    public abstract class Player
+    public abstract class Player 
     {
         public string Name { get; set; }
         public Grid PlayerGrid { get; set; }
@@ -18,8 +18,6 @@ namespace Battleship
             PlayerGrid = grid;
             Ships = ships;
         }
-
-        public abstract void TakeAction(IPlayerAction action);
 
         public void RemoveSunkShip(Ship ship)
         {
@@ -36,6 +34,10 @@ namespace Battleship
                 }
             }
             return true; 
+        }
+        public void TakeAction<T>(IPlayerAction<T> action) where T : Player
+        {
+            action.Execute((T)this); 
         }
     }
 }
