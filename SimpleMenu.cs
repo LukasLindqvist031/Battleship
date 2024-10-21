@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 
 namespace Battleship
 {
-    public interface IPlayerAction
+    public class SimpleMenu
     {
-        void Execute(); 
+        
     }
 }

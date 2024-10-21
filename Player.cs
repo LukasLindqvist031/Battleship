@@ -35,9 +35,10 @@ namespace Battleship
             }
             return true; 
         }
-        public void TakeAction<T>(IPlayerAction<T> action) where T : Player
+
+        public void Execute(IPlayerAction action)
         {
-            action.Execute((T)this); 
+            action.Execute();
         }
     }
 }

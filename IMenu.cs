@@ -6,8 +6,12 @@ using System.Threading.Tasks;
 
 namespace Battleship
 {
-    public interface IPlayerAction
+    public interface IMenu<T>
     {
-        void Execute(); 
+        void Draw();
+        void up();
+        void down();
+
+        T GetSelectedItem();
     }
 }
