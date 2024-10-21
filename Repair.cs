@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace Battleship
 {
-    public class Repair<T> : IPlayerAction<T> where T : Player
+    public class Repair : IPlayerAction
     {
-        public void Execute(T player)
+        public void Execute(Player player)
         {
             foreach (var ship in player.Ships)
             {
