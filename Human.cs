@@ -12,14 +12,20 @@ namespace Battleship
             : base(name, grid, ships, actions, shootingStrategy) { }
         public void ChooseAndPerformAction(int actionIndex)
         {
-            // If the action is shooting, use PerformShooting instead of a generic action
-            if (actionIndex == 0) // Assuming index 0 is for shooting
+            IPlayerAction chosenAction = Actions[actionIndex];
+
+            switch (chosenAction)
             {
-                PerformShooting(); // Executes the shooting strategy
-            }
-            else
-            {
-                PerformAction(actionIndex); // Other actions (e.g., repair, etc.)
+                case Attack attackAction:
+                    PerformShooting(); 
+                    break;
+
+                case Repair repairAction:
+                    PerformAction(actionIndex); 
+                    break;
+
+                default:
+                    throw new InvalidOperationException("Unknown action type!");
             }
         }
     }
