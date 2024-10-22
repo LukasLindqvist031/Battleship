@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Battleship
 {
-    public class Attack : IPlayerAction 
+    public class Attack : IPlayerAction
     {
         private Grid _opponentGrid;
         private Cell _targetCell;
