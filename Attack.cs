@@ -23,7 +23,7 @@ namespace Battleship
         {
             if (_targetCell.IsHit)
             {
-                Console.WriteLine("This cell has already been hit.");
+                Console.WriteLine("This cell has already been hit."); //Gör vi så att man får välja en ny cell här eller vad händer?
                 return;
             }
 
