@@ -26,5 +26,7 @@ namespace Battleship
         {
             return Ship == null;
         }
+
+        public bool HasShip() {  return Ship != null; }
     }
 }

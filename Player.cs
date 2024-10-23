@@ -8,22 +8,31 @@ namespace Battleship
 {
     public abstract class Player 
     {
-        public string Name { get; set; }
-        public Grid PlayerGrid { get; set; }
-        public List<Ship> Ships { get; set; }
-        protected List<IPlayerAction> Actions { get; private set; }
-        protected IShootingStrategy ShootingStrategy;
+        public string Name { get; }
+        public Grid PlayerGrid { get; }
+        public Grid OpponentGrid { get; }
+        public List<Ship> Ships { get; }
+        public List<IPlayerAction> Actions { get; }
+        private readonly IShootingStrategy _shootingStrategy;
 
 
-        protected Player(string name, Grid grid, List<Ship> ships, List<IPlayerAction> actions, IShootingStrategy shootingStrategy)
+        protected Player(
+        string name,
+        Grid playerGrid,
+        Grid opponentGrid,
+        List<Ship> ships,
+        List<IPlayerAction> actions,
+        IShootingStrategy shootingStrategy
+        )
         {
             Name = name;
-            PlayerGrid = grid;
+            PlayerGrid = playerGrid;
+            OpponentGrid = opponentGrid;
             Ships = ships;
             Actions = actions;
-            ShootingStrategy = shootingStrategy;   
+            _shootingStrategy = shootingStrategy;
+            
         }
-
         public void RemoveSunkShip(Ship ship)
         {
             if (Ships.Contains(ship)) {  Ships.Remove(ship); }

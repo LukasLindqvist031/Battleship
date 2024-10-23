@@ -6,46 +6,137 @@ using System.Threading.Tasks;
 
 namespace Battleship
 {
-    public class GameController(Player player1, Player player2)
+    public class GameController
     {
+        private readonly Player _humanPlayer;
+        private readonly Player _computerPlayer;
+        private Player _currentPlayer;
+        private bool _isGameOver;
 
-        private bool _isPlayer1Turn = true;
-
+        public GameController(Player humanPlayer, Player computerPlayer)
+        {
+            _humanPlayer = humanPlayer;
+            _computerPlayer = computerPlayer;
+            _currentPlayer = humanPlayer; // Human goes first
+            _isGameOver = false;
+        }
         public Player GetCurrentPlayer()
         {
-            return _isPlayer1Turn ? player1 : player2;
+            return _currentPlayer;
         }
 
-        public Player GetOpponent(Player currentPlayer)
+        public Player GetOpponent()
         {
-            return currentPlayer == player1 ? player2 : player1;
+            return _currentPlayer == _humanPlayer ? _computerPlayer : _humanPlayer;
         }
 
-        public void SwitchTurn()
+        private void DisplayGameState()
         {
-            _isPlayer1Turn = !_isPlayer1Turn;
-        }
+            Console.Clear();
+            Console.WriteLine($"\n{_currentPlayer.Name}'s turn");
 
-        public Grid GetOpponentGrid(Player currentPlayer)
-        {
-            return GetOpponent(currentPlayer).PlayerGrid;
-        }
-
-        public void ProcessShooting(Player currentPlayer, Cell targetCell)
-        {
-            Player opponent = GetOpponent(currentPlayer);
-            Attack attack = new Attack(opponent.PlayerGrid, targetCell);
-            attack.Execute(currentPlayer);
-
-            // Check if the opponent has lost
-            if (opponent.AreAllShipsSunk())
+            if (_currentPlayer == _humanPlayer)
             {
-                Console.WriteLine($"{currentPlayer.Name} wins!");
+                Console.WriteLine("\nYour Grid:");
+                DisplayGrid(_humanPlayer.PlayerGrid, true);
+
+                Console.WriteLine("\nOpponent's Grid:");
+                DisplayGrid(_humanPlayer.OpponentGrid, false);
+            }
+        }
+
+        private void DisplayGrid(Grid grid, bool showShips)
+        {
+            Console.WriteLine("  A B C D E F G H I J");
+            for (int row = 0; row < 10; row++)
+            {
+                Console.Write((row + 1).ToString().PadLeft(2) + " ");
+                for (int col = 0; col < 10; col++)
+                {
+                    var cell = grid.Grids[row, col];
+                    char symbol = GetCellSymbol(cell, showShips);
+                    Console.Write($"{symbol} ");
+                }
+                Console.WriteLine();
+            }
+        }
+
+        private char GetCellSymbol(Cell cell, bool showShips)
+        {
+            if (cell.IsHit)
+            {
+                return cell.HasShip() ? 'X' : 'O';
             }
 
-            // Switch turn after shooting
-            SwitchTurn();
+            if (showShips && cell.HasShip())
+            {
+                return 'S';
+            }
+
+            return '~';
+        }
+
+        private IPlayerAction GetHumanAction(List<IPlayerAction> availableActions)
+        {
+            while (true)
+            {
+                Console.WriteLine("\nAvailable Actions:");
+                for (int i = 0; i < availableActions.Count; i++)
+                {
+                    Console.WriteLine($"{i + 1}. {availableActions[i].Name}");
+                }
+
+                Console.Write("\nSelect action (enter number): ");
+                if (int.TryParse(Console.ReadLine(), out int choice) &&
+                    choice >= 1 &&
+                    choice <= availableActions.Count)
+                {
+                    return availableActions[choice - 1];
+                }
+
+                Console.WriteLine("Invalid selection. Please try again.");
+            }
+        }
+
+        private IPlayerAction GetComputerAction(List<IPlayerAction> availableActions)
+        {
+            // For now, computer always chooses to attack if possible
+            var attackAction = availableActions.FirstOrDefault(a => a is Attack);
+            return attackAction ?? availableActions.First();
+        }
+
+        private void CheckGameOver()
+        {
+            bool humanShipsDestroyed = _humanPlayer.AreAllShipsSunk();
+            bool computerShipsDestroyed = _computerPlayer.AreAllShipsSunk();
+
+            if (humanShipsDestroyed || computerShipsDestroyed)
+            {
+                _isGameOver = true;
+                _currentPlayer = humanShipsDestroyed ? _computerPlayer : _humanPlayer; // Set winner as current player
+            }
+        }
+
+        private void SwitchPlayer()
+        {
+            _currentPlayer = (_currentPlayer == _humanPlayer) ? _computerPlayer : _humanPlayer;
+        }
+
+        private void DisplayGameOver()
+        {
+            Console.Clear();
+            Console.WriteLine("\n=== Game Over ===");
+            Console.WriteLine($"\nWinner: {_currentPlayer.Name}!");
+
+            // Display final grid states
+            Console.WriteLine("\nFinal Grid States:");
+            Console.WriteLine("\nPlayer's Grid:");
+            DisplayGrid(_humanPlayer.PlayerGrid, true);
+            Console.WriteLine("\nComputer's Grid:");
+            DisplayGrid(_computerPlayer.PlayerGrid, true);
+
+            Console.WriteLine("\nPress any key to exit...");
+            Console.ReadKey();
         }
     }
-
 }
