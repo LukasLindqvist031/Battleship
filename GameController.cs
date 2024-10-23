@@ -101,7 +101,7 @@ namespace Battleship
         private IPlayerAction GetComputerAction(List<IPlayerAction> availableActions)
         {
             // For now, computer always chooses to attack if possible
-            var attackAction = availableActions.FirstOrDefault(a => a is Attack);
+            var attackAction = availableActions.FirstOrDefault(a => a is Attack); //LLM generated code. Kommentera/källhänvisa på nåt sätt, idk???
             return attackAction ?? availableActions.First();
         }
 

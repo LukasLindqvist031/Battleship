@@ -19,7 +19,7 @@ namespace Battleship
             }
         }
 
-        public static void DisplayGrid(Grid grid)
+        public static void DisplayGrid(Grid grid) //Död kod atm
         {
             Console.WriteLine("   A B C D E F G H I J");
             for (int row = 0; row < GridSize; row++) {

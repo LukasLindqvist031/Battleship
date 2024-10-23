@@ -105,15 +105,14 @@ namespace Battleship
         private void DisplayGameState(Player player, GameController gameController)
         {
             Console.WriteLine($"{player.Name}'s Grid:");
-            DisplayGrid(player.PlayerGrid, true);  // Show ships on player's grid
+            DisplayGrid(player.PlayerGrid, true);  // Show ships for player grid
 
             Console.WriteLine($"\n{gameController.GetOpponent().Name}'s Grid:");
-            DisplayGrid(player.OpponentGrid, false);  // Hide ships on opponent's grid
+            DisplayGrid(player.OpponentGrid, false);  // Hide ships on opponent grid
         }
 
         private void DisplayGrid(Grid grid, bool showShips)
         {
-            // Display column headers (A-J)
             Console.Write("  ");
             for (int i = 0; i < Grid.GridSize; i++)
             {
@@ -121,24 +120,23 @@ namespace Battleship
             }
             Console.WriteLine();
 
-            // Display rows
             for (int row = 0; row < Grid.GridSize; row++)
             {
-                Console.Write($"{row + 1}".PadLeft(2) + " ");  // Row numbers (1-10)
+                Console.Write($"{row + 1}".PadLeft(2) + " ");  
                 for (int col = 0; col < Grid.GridSize; col++)
                 {
                     var cell = grid.Grids[row, col];
                     if (cell.IsHit)
                     {
-                        Console.Write(cell.HasShip() ? "X " : "• ");  // X for hit ship, • for miss
+                        Console.Write(cell.HasShip() ? "X " : "• ");  
                     }
                     else if (showShips && cell.HasShip())
                     {
-                        Console.Write("O ");  // O for ship
+                        Console.Write("O ");  
                     }
                     else
                     {
-                        Console.Write("~ ");  // ~ for water
+                        Console.Write("~ ");  
                     }
                 }
                 Console.WriteLine();
