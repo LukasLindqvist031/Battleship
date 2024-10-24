@@ -122,7 +122,7 @@ namespace Battleship
             _currentPlayer = (_currentPlayer == _humanPlayer) ? _computerPlayer : _humanPlayer;
         }
 
-        private void DisplayGameOver()
+        private void DisplayGameOver() //LLM. Nödväntigt att kommentera?
         {
             Console.Clear();
             Console.WriteLine("\n=== Game Over ===");

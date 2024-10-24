@@ -95,10 +95,10 @@ namespace Battleship
                 Player currentPlayer = gameController.GetCurrentPlayer();
                 Console.Clear();
 
-                switch (currentPlayer)
+                if(currentPlayer is Human)
                 {
-                    //case currentPlayer is Human:
-                        
+                    DisplayGameState(currentPlayer, gameController);
+
                 }
             }
         }
@@ -111,7 +111,7 @@ namespace Battleship
             DisplayGrid(player.OpponentGrid, false);  // Hide ships on opponent grid
         }
 
-        private void DisplayGrid(Grid grid, bool showShips)
+        private void DisplayGrid(Grid grid, bool showShips) //Update the mark for the cell, print the cell.mark instead
         {
             Console.Write("  ");
             for (int i = 0; i < Grid.GridSize; i++)
@@ -141,6 +141,16 @@ namespace Battleship
                 }
                 Console.WriteLine();
             }
+        }
+
+        private void HandleHumanTurn(Player currentplayer)
+        {
+
+        }
+
+        private void HandleComputerTurn(Player currentplayer)
+        {
+
         }
     }
 }

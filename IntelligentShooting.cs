@@ -22,7 +22,7 @@ namespace Battleship
         public void Shoot(Player player)
         {
             // Hämta motståndarens grid
-            Grid opponentGrid = player.Opponent.Grid;
+            Grid opponentGrid = player.OpponentGrid;
 
             // Om vi har målceller att skjuta på (närliggande celler), välj från den kön
             if (_possibleTargets.Count > 0)
@@ -48,7 +48,7 @@ namespace Battleship
 
         private void ExecuteAttack(Player player, Cell targetCell)
         {
-            Attack attack = new Attack(player.Opponent.Grid, targetCell);
+            Attack attack = new Attack(player.OpponentGrid, targetCell);
             attack.Execute(player);
 
             if (!targetCell.IsEmpty() && targetCell.IsHit)  // Om träff på skepp
@@ -56,7 +56,7 @@ namespace Battleship
                 _hitCells.Add(targetCell);  // Lägg till i listan med träffar
 
                 // Lägg till möjliga målceller (upp, ner, vänster, höger)
-                AddAdjacentCellsToTargets(player.Opponent.Grid, targetCell);
+                AddAdjacentCellsToTargets(player.OpponentGrid, targetCell);
             }
         }
 
