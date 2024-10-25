@@ -24,8 +24,8 @@ namespace Battleship
             Cell targetCell = IsValidShoot(opponentGrid);
 
             // Use Attack class to perform the shooting action
-            Attack attack = new Attack(opponentGrid, targetCell);
-            attack.Execute(player);
+            Attack attack = new Attack(opponentGrid);
+            attack.Execute(player, targetCell);
         }
 
         public Cell IsValidShoot(Grid opponentGrid)

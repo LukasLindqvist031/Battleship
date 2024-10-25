@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -29,12 +30,12 @@ namespace Battleship
 
             var playerActions = new List<IPlayerAction> //Code reuse
             {
-                new Attack(computerGrid, null),
+                new Attack(computerGrid),
                 new Repair()
             };
             var computerActions = new List<IPlayerAction>
             {
-                new Attack(playerGrid, null),
+                new Attack(playerGrid),
                 new Repair()
             };
 
@@ -98,6 +99,7 @@ namespace Battleship
                 if(currentPlayer is Human)
                 {
                     DisplayGameState(currentPlayer, gameController);
+                    HandleHumanTurn(currentPlayer);
 
                 }
             }
@@ -145,7 +147,43 @@ namespace Battleship
 
         private void HandleHumanTurn(Player currentplayer)
         {
+            var menuItem = new List<MenuItem<IPlayerAction>>
+            {
+                new MenuItem<IPlayerAction>("Attack", currentplayer.Actions[0]),
+                new MenuItem<IPlayerAction>("Repair", currentplayer.Actions[1])
+            };
 
+            var menu = new SimpleMenu<IPlayerAction>(menuItem);
+            bool validAction = false;
+
+            while (!validAction)
+            {
+                //Console.WriteLine("\n Choose your action:");
+
+                menu.Draw();
+
+                var key = Console.ReadKey(true);
+                switch (key.Key)
+                {
+                    case ConsoleKey.UpArrow:
+                        menu.Up();
+                        break;
+                    case ConsoleKey.DownArrow:
+                        menu.Down();
+                        break;
+                    case ConsoleKey.Enter:
+                        var selectedItem = menu.GetSelectedItem();
+                        var action = selectedItem.Value;
+
+                        if(action is Attack attack)
+                        {
+                            //Implementera logiken för att attackera ett skepp
+                        }
+
+                        validAction = true;
+                        break;
+                }
+            }
         }
 
         private void HandleComputerTurn(Player currentplayer)

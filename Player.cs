@@ -29,7 +29,7 @@ namespace Battleship
             PlayerGrid = playerGrid;
             OpponentGrid = opponentGrid;
             Ships = ships;
-            Actions = actions;
+            Actions = new List<IPlayerAction> { new Attack(opponentGrid), new Repair() };
             _shootingStrategy = shootingStrategy;
             
         }
@@ -49,7 +49,7 @@ namespace Battleship
             }
             return true; 
         }
-        public void PerformAction(int actionIndex)
+        /*public void PerformAction(int actionIndex)
         {
             if (actionIndex >= 0 && actionIndex < Actions.Count)
             {
@@ -64,6 +64,6 @@ namespace Battleship
         public void PerformShooting()
         {
             ShootingStrategy.Shoot(this); // Use the injected shooting strategy
-        }
+        }*/
     }
 }

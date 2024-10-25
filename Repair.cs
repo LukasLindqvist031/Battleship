@@ -8,7 +8,8 @@ namespace Battleship
 {
     public class Repair : IPlayerAction
     {
-        public void Execute(Player player)
+        public string Name { get; } = "Repair";
+        public void Execute(Player player, Cell targetCell) //Redunacy. Kan använda null, men blir fucked
         {
             foreach (var ship in player.Ships)
             {

@@ -48,8 +48,8 @@ namespace Battleship
 
         private void ExecuteAttack(Player player, Cell targetCell)
         {
-            Attack attack = new Attack(player.OpponentGrid, targetCell);
-            attack.Execute(player);
+            Attack attack = new Attack(player.OpponentGrid);
+            attack.Execute(player, targetCell);
 
             if (!targetCell.IsEmpty() && targetCell.IsHit)  // Om träff på skepp
             {

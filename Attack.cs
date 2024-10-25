@@ -10,30 +10,31 @@ namespace Battleship
 {
     public class Attack : IPlayerAction
     {
+        public string Name { get; } = "Attack";
+
         private Grid _opponentGrid;
         private Cell _targetCell;
 
-        public Attack(Grid opponentGrid, Cell targetCell)
+        public Attack(Grid opponentGrid)
         {
             _opponentGrid = opponentGrid;
-            _targetCell = targetCell;
         }
 
-        public void Execute(Player player)
+        public void Execute(Player player, Cell targetCell)
         {
-            if (_targetCell.IsHit)
+            if (targetCell.IsHit)
             {
                 Console.WriteLine("This cell has already been hit."); //Gör vi så att man får välja en ny cell här eller vad händer?
                 return;
             }
 
-            _targetCell.IsHit = true;
+            targetCell.IsHit = true;
 
-            if (!(_targetCell.IsEmpty()))
+            if (!(targetCell.IsEmpty()))
             {
                 Ship targetShip = _targetCell.Ship; //Dependecy Inejction
                 targetShip.HitTaken++;
-                _targetCell.Mark = "X ";
+                targetCell.Mark = "X ";
 
 
 
@@ -42,7 +43,7 @@ namespace Battleship
                     player.RemoveSunkShip(targetShip);
                 }
             }
-            else { _targetCell.Mark = "M "; }
+            else { targetCell.Mark = "M "; }
         }
     }
 }
