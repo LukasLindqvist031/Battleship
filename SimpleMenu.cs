@@ -17,6 +17,7 @@ namespace Battleship
             _menuItems = items;
             _selectedIndex = 0;
             menuTop = Console.CursorTop;
+            Console.CursorVisible = false; //Denna kod gör kanske resterande cursorposition onödig. Kontrollera! 
             if (_menuItems.Any())
             {
                 _menuItems[0].IsSelected = true;
@@ -25,7 +26,7 @@ namespace Battleship
 
         public void Draw()
         {
-            Console.SetCursorPosition(0, menuTop);
+            //Console.SetCursorPosition(0, menuTop);
 
             // Clear the menu 
             for (int i = 0; i < _menuItems.Count; i++)
