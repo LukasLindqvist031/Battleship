@@ -15,6 +15,45 @@ namespace Battleship
         {
             _shipPlacementService = new ShipPlacementService();
         }
+        private string GetPlayerName()
+        {
+            Console.WriteLine("Welcome to Battleship!");
+            Console.Write("Enter your name: ");
+            string name = Console.ReadLine()?.Trim() ?? "Player";
+            return string.IsNullOrEmpty(name) ? "Player" : name;
+        }
+
+        private IShootingStrategy SelectComputerStrategy()
+        {
+            var strategies = new List<MenuItem<IShootingStrategy>>
+        {
+            new MenuItem<IShootingStrategy>("Random Strategy", new RandomShooting()),
+            new MenuItem<IShootingStrategy>("Intelligent Strategy", new IntelligentShooting()),
+        };
+
+            var menu = new SimpleMenu<IShootingStrategy>(strategies);
+            
+
+            while (true)
+            {
+                //Console.WriteLine("\nSelect computer's strategy:");
+                menu.Draw();
+                var key = Console.ReadKey(true);
+
+                switch (key.Key)
+                {
+                    case ConsoleKey.UpArrow:
+                        menu.Up();
+                        break;
+                    case ConsoleKey.DownArrow:
+                        menu.Down();
+                        break;
+                    case ConsoleKey.Enter:
+                        return menu.GetSelectedItem().Value;
+                }
+            }
+        }
+
 
         public void Run()
         {
@@ -24,6 +63,12 @@ namespace Battleship
             // Create Human and Computer
             // Start playing by selecting a square
             //Menu will be implemented among other places, in ShootingStrategy for Human in his UserShootingStrategy
+
+            Console.Clear();
+            string playerName = GetPlayerName();
+            Console.Clear();
+            IShootingStrategy computerStrategy = SelectComputerStrategy();
+            
 
             Grid playerGrid = new Grid();
             Grid computerGrid = new Grid();
@@ -66,8 +111,11 @@ namespace Battleship
                 _shipPlacementService.PlaceShipRandomly(computerGrid, ship);
             }
 
+
+
+
             var human = new Human(
-            name: "Player",
+            name: playerName,
             playerGrid: playerGrid,
             opponentGrid: computerGrid,
             ships: playerShips,
@@ -100,7 +148,6 @@ namespace Battleship
                 {
                     DisplayGameState(currentPlayer, gameController);
                     HandleHumanTurn(currentPlayer);
-
                 }
             }
         }
