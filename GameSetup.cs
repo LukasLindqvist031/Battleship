@@ -224,18 +224,48 @@ namespace Battleship
 
                         if(action is Attack attack)
                         {
-                            //Implementera logiken för att attackera ett skepp
+                            Cell targetCell = GetTargetCell(currentplayer.OpponentGrid);
+
+                            attack.Execute(currentplayer, targetCell);
+                            validAction = true;
+                            //Add code here, for the user to be able to attack
+                        }
+                        else if (action is Repair repair)
+                        {
+
                         }
 
-                        validAction = true;
                         break;
                 }
             }
         }
 
-        private void HandleComputerTurn(Player currentplayer)
+        private Cell GetTargetCell(Grid opponentGrid)
         {
+            int row = 0, col = 0;
+            bool validInput = false;
 
+            while (!validInput)
+            {
+                Console.WriteLine("\nEnter target coordinates:");
+                Console.Write("Row (0-" + (Grid.GridSize - 1) + "): ");
+                if (int.TryParse(Console.ReadLine(), out row))
+                {
+                    Console.Write("Column (0-" + (Grid.GridSize - 1) + "): ");
+                    if (int.TryParse(Console.ReadLine(), out col))
+                    {
+                        if (row >= 0 && row < Grid.GridSize && col >= 0 && col < Grid.GridSize)
+                        {
+                            validInput = true;
+                        }
+                    }
+                }
+                if (!validInput)
+                {
+                    Console.WriteLine("Invalid coordinates. Please try again.");
+                }
+            }
+            return opponentGrid.Grids[row, col];
         }
     }
 }
