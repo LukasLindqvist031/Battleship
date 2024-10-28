@@ -36,10 +36,8 @@ namespace Battleship
             if (cellToRepair != null)
             {
                 cellToRepair.IsHit = false;  // Reset IsHit to allow DisplayGrid to show "~"
+                //cellToRepair.Mark = "O ";    // Update the cell mark to "O " for a repaired ship part
             }
-
-            Console.WriteLine($"Repaired a part of the ship with size {shipToRepair.Length}. Remaining hits: {shipToRepair.HitTaken}");
         }
-
     }
 }

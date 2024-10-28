@@ -11,72 +11,59 @@ namespace Battleship
     {
         private Random _random = new Random();
 
-        public void PlaceShipRandomly(Grid grid, Ship ship) //Om det finns ett skepp på platsen, ska det skrivas ut ett O, det ska inte behövas ändras manuellt. ÄNDRA!
+        public void PlaceShipRandomly(Grid grid, Ship[] ships)
         {
-            bool placed = false;
-
-            while (!placed)
+            Random random = new Random();
+            foreach (Ship ship in ships)
             {
-                bool vertical = _random.Next(2) == 0;
-
-                int startRow = _random.Next(vertical ? Grid.GridSize - ship.Length : Grid.GridSize);
-                int startColumn = _random.Next(!vertical ? Grid.GridSize - ship.Length : Grid.GridSize);
-
-                if (IsValidPlacement(grid, ship, startRow, startColumn, vertical))
+                bool placed = false;
+                while (!placed)
                 {
-                    for (int i = 0; i < ship.Length; i++)
-                    {
-                        if (vertical)
-                        {
-                            grid.Grids[startRow + i, startColumn].Ship = ship;
-                        }
-                        else
-                        {
-                            grid.Grids[startRow, startColumn + i].Ship = ship;
-                        }
-                    }
-                    placed = true; 
+                    // Get random starting position
+                    var availableCells = grid.Where(cell => cell.IsEmpty()).ToList();
+                    if (availableCells.Count == 0) break;
+
+                    Cell startCell = availableCells[random.Next(availableCells.Count)];
+                    placed = TryPlaceShip(grid, startCell, ship, random.Next(2) == 0);
                 }
             }
         }
 
-        private bool IsValidPlacement(Grid grid, Ship ship, int startRow, int startCol, bool vertical)
+        private bool TryPlaceShip(Grid grid, Cell startCell, Ship ship, bool horizontal)
         {
-            for(int i = 0; i < ship.Length; i++)
-            {
-                int row = vertical ? startRow + i : startRow;
-                int col = vertical ? startCol : startCol + i;
+            // Identify potential ship cells based on the starting cell and orientation
+            var shipCells = horizontal
+                ? grid.Where(c => c.Row == startCell.Row &&
+                                c.Column >= startCell.Column &&
+                                c.Column < startCell.Column + ship.Length)
+                : grid.Where(c => c.Column == startCell.Column &&
+                                c.Row >= startCell.Row &&
+                                c.Row < startCell.Row + ship.Length);
 
-                if (row >= Grid.GridSize || col >= Grid.GridSize || !grid.Grids[row, col].IsEmpty() || !IsCellIsolated(grid, row, col))
-                {
-                    return false; 
-                }
+            // Check if the selected cells are enough and if all are empty and isolated
+            if (shipCells.Count() != ship.Length || shipCells.Any(c => !c.IsEmpty() || !IsCellIsolated(grid, c.Row, c.Column)))
+                return false;
+
+            // Place the ship if all checks passed
+            foreach (var cell in shipCells)
+            {
+                cell.Ship = ship;
             }
             return true;
         }
 
         private bool IsCellIsolated(Grid grid, int row, int col)
         {
-            if (row > 0 && !grid.Grids[row - 1, col].IsEmpty())
-            {
-                return false;
-            }
+            // Use LINQ to find the neighbors by checking row and column offsets
+            var neighbors = grid.Where(cell =>
+                (cell.Row == row - 1 && cell.Column == col) ||    // Up
+                (cell.Row == row + 1 && cell.Column == col) ||    // Down
+                (cell.Row == row && cell.Column == col - 1) ||    // Left
+                (cell.Row == row && cell.Column == col + 1));     // Right
 
-            if (row < Grid.GridSize - 1 && !grid.Grids[row + 1, col].IsEmpty())
-            {
-                return false;
-            }
-
-            if (col > 0 && !grid.Grids[row, col - 1].IsEmpty())
-            {
-                return false;
-            }
-
-            if (col < Grid.GridSize - 1 && !grid.Grids[row, col + 1].IsEmpty())
-            {
-                return false;
-            }
-            return true;
+            // Check if any neighbor cell is occupied
+            return neighbors.All(cell => cell.IsEmpty());
         }
+
     }
 }

@@ -40,14 +40,7 @@ namespace Battleship
 
         public bool AreAllShipsSunk()
         {
-            foreach (var ship in Ships)
-            {
-                if (!ship.IsSunk())
-                {
-                    return false; 
-                }
-            }
-            return true; 
+            return !PlayerGrid.Any(cell => cell.HasShip() && !cell.IsHit);
         }
         /*public void PerformAction(int actionIndex)
         {

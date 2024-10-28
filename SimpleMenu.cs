@@ -8,47 +8,39 @@ namespace Battleship
 {
     public class SimpleMenu<T>
     {
-        private readonly List<MenuItem<T>> _menuItems;
-        private int _selectedIndex;
-        private readonly int menuTop;
+        public readonly List<MenuItem<T>> _menuItems;
+        public int _selectedIndex;
+        public readonly int menuTop;
 
         public SimpleMenu(List<MenuItem<T>> items)
         {
             _menuItems = items;
             _selectedIndex = 0;
             menuTop = Console.CursorTop;
-            Console.CursorVisible = false; //Denna kod gör kanske resterande cursorposition onödig. Kontrollera! 
-            if (_menuItems.Any())
-            {
-                _menuItems[0].IsSelected = true;
-            }
         }
 
         public void Draw()
         {
-            //Console.SetCursorPosition(0, menuTop);
+            Console.CursorVisible = false;
 
-            // Clear the menu 
+            // Clear only the lines used by the menu
             for (int i = 0; i < _menuItems.Count; i++)
             {
-                Console.WriteLine(new string(' ', Console.WindowWidth));
+                Console.SetCursorPosition(0, menuTop + i);
+                Console.Write(new string(' ', Console.WindowWidth));
             }
 
-            // Move cursor back to start
-            Console.SetCursorPosition(0, menuTop);
-
+            // Draw menu with arrow for selected item
             for (int i = 0; i < _menuItems.Count; i++)
             {
-                var item = _menuItems[i];
-
-                // Fundera på om detta är värt det. Eller om det finns rimligare lösningar. Jämför med Pokemon spelet. 
-                if (_selectedIndex == i)
+                Console.SetCursorPosition(0, menuTop + i);
+                if (i == _selectedIndex)
                 {
-                    Console.WriteLine($"-> {item.Text.PadRight(10)}"); // Highlighted option
+                    Console.WriteLine($"-> {_menuItems[i].Text.PadRight(10)}");
                 }
                 else
                 {
-                    Console.WriteLine($"   {item.Text.PadRight(10)}"); // Non-highlighted option with spaces for alignment
+                    Console.WriteLine($"   {_menuItems[i].Text.PadRight(10)}");
                 }
             }
         }

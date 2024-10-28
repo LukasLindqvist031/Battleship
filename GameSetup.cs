@@ -84,35 +84,20 @@ namespace Battleship
                 new Repair()
             };
 
-            var playerShips = new List<Ship> //Code Reuse? Reference type? 
-            {
-                new Ship(5), 
-                new Ship(4), 
-                new Ship(3), 
-                new Ship(3), 
-                new Ship(2)  
-            };
-
-            var computerShips = new List<Ship>
+            Ship[] ships = new Ship[]
             {
                 new Ship(5),
                 new Ship(4),
                 new Ship(3),
-                new Ship(3),
-                new Ship(2)
+                new Ship(2),
+                new Ship(1)
             };
 
-            foreach (var ship in playerShips)
-            {
-                _shipPlacementService.PlaceShipRandomly(playerGrid, ship);
-            }
-            foreach (var ship in computerShips)
-            {
-                _shipPlacementService.PlaceShipRandomly(computerGrid, ship);
-            }
+            _shipPlacementService.PlaceShipRandomly(playerGrid, ships);
+            _shipPlacementService.PlaceShipRandomly(computerGrid, ships.Select(s => s.Clone()).ToArray());
 
-
-
+            var playerShips = ships.ToList();
+            var computerShips = ships.Select(s => s.Clone()).ToList();
 
             var human = new Human(
             name: playerName,
@@ -129,7 +114,7 @@ namespace Battleship
                 opponentGrid: playerGrid,
                 ships: computerShips,
                 actions: computerActions,
-                shootingStrategy: new RandomShooting()
+                shootingStrategy: new IntelligentShooting()
             );
 
             var gameController = new GameController(human, computer);
@@ -164,42 +149,44 @@ namespace Battleship
         private void DisplayGameState(Player player, GameController gameController)
         {
             Console.WriteLine($"{player.Name}'s Grid:");
-            DisplayGrid(player.PlayerGrid, true);  // Show ships for player grid
+            DisplayGrid(player.PlayerGrid, false);  // Show ships for player grid
 
             Console.WriteLine($"\n{gameController.GetOpponent().Name}'s Grid:");
-            DisplayGrid(player.OpponentGrid, false);  // Hide ships on opponent grid
+            DisplayGrid(player.OpponentGrid, true);  // Hide ships on opponent grid
         }
 
-        private void DisplayGrid(Grid grid, bool showShips) //Update the mark for the cell, print the cell.mark instead
+        public void DisplayGrid(Grid grid, bool hideShips = false)
         {
-            Console.Write("   ");
-            for (int i = 0; i < Grid.GridSize; i++)
-            {
-                Console.Write($"{(char)('A' + i)} ");
-            }
-            Console.WriteLine();
+            Console.WriteLine("  0 1 2 3 4 5 6 7 8 9");
+            int currentRow = 0;
+            int cellsInRow = 0;
 
-            for (int row = 0; row < Grid.GridSize; row++)
+            foreach (Cell cell in grid)
             {
-                Console.Write($"{row + 1}".PadLeft(2) + " ");  
-                for (int col = 0; col < Grid.GridSize; col++)
+                if (cellsInRow == 0)
                 {
-                    var cell = grid.Grids[row, col];
-                    if (cell.IsHit)
-                    {
-                        Console.Write(cell.HasShip() ? "X " : "M ");  
-                    }
-                    else if (showShips && cell.HasShip())
-                    {
-                        Console.Write("O ");  
-                    }
-                    else
-                    {
-                        Console.Write("~ ");  
-                    }
+                    Console.Write($"{currentRow} ");
                 }
-                Console.WriteLine();
+
+                char symbol = GetCellSymbol(cell, hideShips);
+                Console.Write($"{symbol} ");
+
+                cellsInRow++;
+                if (cellsInRow == Grid.GridSize)
+                {
+                    Console.WriteLine();
+                    cellsInRow = 0;
+                    currentRow++;
+                }
             }
+        }
+
+        private char GetCellSymbol(Cell cell, bool hideShips)
+        {
+            if (cell.IsHit && cell.HasShip()) return 'X';    // Hit ship
+            if (cell.IsHit && cell.IsEmpty()) return 'M';    // Missed shot
+            if (cell.HasShip() && !hideShips) return 'O';    // Ship
+            return '~';                                       // Empty water
         }
 
         private void HandleHumanTurn(Player currentPlayer)
@@ -230,36 +217,53 @@ namespace Battleship
                         var selectedItem = menu.GetSelectedItem();
                         var action = selectedItem.Value;
 
-                        if(action is Attack attack)
+                        if (action is Attack attack)
                         {
-                            Cell targetCell;
+                            // Clear previous messages before displaying targeting prompt
+                            int messageRow = Console.WindowHeight - 2;
+                            Console.SetCursorPosition(0, messageRow);
+                            Console.Write(new string(' ', Console.WindowWidth)); // Clear line
 
+                            // Now proceed with prompting for target coordinates
+                            Cell targetCell;
                             do
                             {
-                                targetCell = GetTargetCell(currentPlayer.OpponentGrid);
+                                Console.SetCursorPosition(0, messageRow); // Set cursor for targeting prompt below menu
+                                Console.WriteLine("Enter target coordinates:");
+
+                                Console.Write("Row (1-" + (Grid.GridSize) + "): ");
+                                int row = int.Parse(Console.ReadLine() ?? "0"); // Get row
+
+                                Console.Write("Column (1-" + (Grid.GridSize) + "): ");
+                                int col = int.Parse(Console.ReadLine() ?? "0"); // Get column
+
+                                targetCell = currentPlayer.OpponentGrid.Grids[row - 1, col - 1];
 
                                 if (targetCell.IsHit)
                                 {
                                     Console.WriteLine("This cell has already been hit. Please enter new coordinates.");
+                                    // Clear the row where error message is displayed for clarity in repeated prompts
+                                    Console.SetCursorPosition(0, messageRow + 1);
+                                    Console.Write(new string(' ', Console.WindowWidth));
                                 }
 
-                            } while (targetCell.IsHit);  // Repeat until an un-hit cell is selected
+                            } while (targetCell.IsHit); // Repeat until an un-hit cell is selected
 
-                            // Now call Execute with a valid, un-hit cell
+                            // Call Execute with the valid target cell
                             attack.Execute(currentPlayer, targetCell);
                             validAction = true;
                         }
+
                         else if (action is Repair repair)
                         {
-                            // Check if repair is possible
                             if (repair.AttemptRepair(currentPlayer))
                             {
-                                // Execute the repair if possible
                                 repair.Execute(currentPlayer, null);
-                                validAction = true;  // Proceed if the repair was successful
+                                validAction = true;
                             }
                             else
                             {
+                                Console.SetCursorPosition(0, menu.menuTop + menu._menuItems.Count + 1); // Move cursor below the menu
                                 Console.WriteLine("No damaged ships to repair. Please choose another action.");
                             }
                         }
