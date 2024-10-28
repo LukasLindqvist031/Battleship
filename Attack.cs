@@ -13,7 +13,7 @@ namespace Battleship
         public string Name { get; } = "Attack";
 
         private Grid _opponentGrid;
-        private Cell _targetCell;
+        private Cell _targetCell; //Används aldrig?
 
         public Attack(Grid opponentGrid)
         {
@@ -25,12 +25,6 @@ namespace Battleship
             if (targetCell == null) //Dubellkolla denna, inte säker på att det är bästa lösningen
             {
                 Console.WriteLine("Invalid target cell.");
-                return;
-            }
-
-            if (targetCell.IsHit)
-            {
-                Console.WriteLine("This cell has already been hit.");
                 return;
             }
 

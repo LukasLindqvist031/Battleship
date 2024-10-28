@@ -215,8 +215,6 @@ namespace Battleship
 
             while (!validAction)
             {
-                //Console.WriteLine("\n Choose your action:");
-
                 menu.Draw();
 
                 var key = Console.ReadKey(true);
@@ -234,11 +232,22 @@ namespace Battleship
 
                         if(action is Attack attack)
                         {
-                            Cell targetCell = GetTargetCell(currentplayer.OpponentGrid);
+                            Cell targetCell;
 
+                            do
+                            {
+                                targetCell = GetTargetCell(currentplayer.OpponentGrid);
+
+                                if (targetCell.IsHit)
+                                {
+                                    Console.WriteLine("This cell has already been hit. Please enter new coordinates.");
+                                }
+
+                            } while (targetCell.IsHit);  // Repeat until an un-hit cell is selected
+
+                            // Now call Execute with a valid, un-hit cell
                             attack.Execute(currentplayer, targetCell);
                             validAction = true;
-                            //Add code here, for the user to be able to attack
                         }
                         else if (action is Repair repair)
                         {
