@@ -29,12 +29,10 @@ namespace Battleship
                         if (vertical)
                         {
                             grid.Grids[startRow + i, startColumn].Ship = ship;
-                            grid.Grids[startRow + i, startColumn].Mark = "O "; //Dupplicering ändra senare
                         }
                         else
                         {
                             grid.Grids[startRow, startColumn + i].Ship = ship;
-                            grid.Grids[startRow, startColumn + i].Mark = "O "; //Dupplicering ändra senare
                         }
                     }
                     placed = true; 

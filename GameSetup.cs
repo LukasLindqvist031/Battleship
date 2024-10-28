@@ -202,12 +202,12 @@ namespace Battleship
             }
         }
 
-        private void HandleHumanTurn(Player currentplayer)
+        private void HandleHumanTurn(Player currentPlayer)
         {
             var menuItem = new List<MenuItem<IPlayerAction>>
             {
-                new MenuItem<IPlayerAction>("Attack", currentplayer.Actions[0]),
-                new MenuItem<IPlayerAction>("Repair", currentplayer.Actions[1])
+                new MenuItem<IPlayerAction>("Attack", currentPlayer.Actions[0]),
+                new MenuItem<IPlayerAction>("Repair", currentPlayer.Actions[1])
             };
 
             var menu = new SimpleMenu<IPlayerAction>(menuItem);
@@ -215,8 +215,6 @@ namespace Battleship
 
             while (!validAction)
             {
-                //Console.WriteLine("\n Choose your action:");
-
                 menu.Draw();
 
                 var key = Console.ReadKey(true);
@@ -234,17 +232,37 @@ namespace Battleship
 
                         if(action is Attack attack)
                         {
-                            Cell targetCell = GetTargetCell(currentplayer.OpponentGrid);
+                            Cell targetCell;
 
-                            attack.Execute(currentplayer, targetCell);
+                            do
+                            {
+                                targetCell = GetTargetCell(currentPlayer.OpponentGrid);
+
+                                if (targetCell.IsHit)
+                                {
+                                    Console.WriteLine("This cell has already been hit. Please enter new coordinates.");
+                                }
+
+                            } while (targetCell.IsHit);  // Repeat until an un-hit cell is selected
+
+                            // Now call Execute with a valid, un-hit cell
+                            attack.Execute(currentPlayer, targetCell);
                             validAction = true;
-                            //Add code here, for the user to be able to attack
                         }
                         else if (action is Repair repair)
                         {
-
+                            // Check if repair is possible
+                            if (repair.AttemptRepair(currentPlayer))
+                            {
+                                // Execute the repair if possible
+                                repair.Execute(currentPlayer, null);
+                                validAction = true;  // Proceed if the repair was successful
+                            }
+                            else
+                            {
+                                Console.WriteLine("No damaged ships to repair. Please choose another action.");
+                            }
                         }
-
                         break;
                 }
             }
@@ -267,13 +285,13 @@ namespace Battleship
             while (!validInput)
             {
                 Console.WriteLine("\nEnter target coordinates:");
-                Console.Write("Row (0-" + (Grid.GridSize - 1) + "): ");
+                Console.Write("Row (1-" + (Grid.GridSize) + "): ");
                 if (int.TryParse(Console.ReadLine(), out row))
                 {
-                    Console.Write("Column (0-" + (Grid.GridSize - 1) + "): ");
+                    Console.Write("Column (1-" + (Grid.GridSize) + "): ");
                     if (int.TryParse(Console.ReadLine(), out col))
                     {
-                        if (row >= 0 && row < Grid.GridSize && col >= 0 && col < Grid.GridSize)
+                        if (row >= 0 && row <= Grid.GridSize && col >= 0 && col <= Grid.GridSize)
                         {
                             validInput = true;
                         }
@@ -284,7 +302,7 @@ namespace Battleship
                     Console.WriteLine("Invalid coordinates. Please try again.");
                 }
             }
-            return opponentGrid.Grids[row, col];
+            return opponentGrid.Grids[row-1, col-1];
         }
     }
 }

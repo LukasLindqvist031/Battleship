@@ -13,7 +13,7 @@ namespace Battleship
         public string Name { get; } = "Attack";
 
         private Grid _opponentGrid;
-        private Cell _targetCell;
+        private Cell _targetCell; //Används aldrig?
 
         public Attack(Grid opponentGrid)
         {
@@ -22,15 +22,9 @@ namespace Battleship
 
         public void Execute(Player player, Cell targetCell)
         {
-            if (targetCell == null) //Dubellkolla denna, inte säker på att det är bästa lösningen
+            if (targetCell == null)
             {
                 Console.WriteLine("Invalid target cell.");
-                return;
-            }
-
-            if (targetCell.IsHit)
-            {
-                Console.WriteLine("This cell has already been hit.");
                 return;
             }
 
@@ -42,17 +36,12 @@ namespace Battleship
                 if (targetShip != null)
                 {
                     targetShip.HitTaken++;
-                    targetCell.Mark = "X ";
 
                     if (targetShip.IsSunk())
                     {
                         player.RemoveSunkShip(targetShip);
                     }
                 }
-            }
-            else
-            {
-                targetCell.Mark = "M ";
             }
         }
     }
