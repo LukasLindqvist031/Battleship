@@ -22,28 +22,38 @@ namespace Battleship
 
         public void Execute(Player player, Cell targetCell)
         {
+            if (targetCell == null) //Dubellkolla denna, inte säker på att det är bästa lösningen
+            {
+                Console.WriteLine("Invalid target cell.");
+                return;
+            }
+
             if (targetCell.IsHit)
             {
-                Console.WriteLine("This cell has already been hit."); //Gör vi så att man får välja en ny cell här eller vad händer?
+                Console.WriteLine("This cell has already been hit.");
                 return;
             }
 
             targetCell.IsHit = true;
 
-            if (!(targetCell.IsEmpty()))
+            if (!targetCell.IsEmpty())
             {
-                Ship targetShip = _targetCell.Ship; //Dependecy Inejction
-                targetShip.HitTaken++;
-                targetCell.Mark = "X ";
-
-
-
-                if (targetShip.IsSunk()) //För att få vinn vilkoret att fungera måste vi tagit bort skepp som blivit nedskjutna
+                Ship targetShip = targetCell.Ship;
+                if (targetShip != null)
                 {
-                    player.RemoveSunkShip(targetShip);
+                    targetShip.HitTaken++;
+                    targetCell.Mark = "X ";
+
+                    if (targetShip.IsSunk())
+                    {
+                        player.RemoveSunkShip(targetShip);
+                    }
                 }
             }
-            else { targetCell.Mark = "M "; }
+            else
+            {
+                targetCell.Mark = "M ";
+            }
         }
     }
 }

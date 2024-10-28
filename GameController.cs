@@ -105,19 +105,22 @@ namespace Battleship
             return attackAction ?? availableActions.First();
         }
 
-        private void CheckGameOver()
+        public bool CheckGameOver()
         {
             bool humanShipsDestroyed = _humanPlayer.AreAllShipsSunk();
             bool computerShipsDestroyed = _computerPlayer.AreAllShipsSunk();
 
             if (humanShipsDestroyed || computerShipsDestroyed)
             {
-                _isGameOver = true;
                 _currentPlayer = humanShipsDestroyed ? _computerPlayer : _humanPlayer; // Set winner as current player
+                _isGameOver = true;
+                return true;
             }
+
+            return false;
         }
 
-        private void SwitchPlayer()
+        public void SwitchPlayer()
         {
             _currentPlayer = (_currentPlayer == _humanPlayer) ? _computerPlayer : _humanPlayer;
         }

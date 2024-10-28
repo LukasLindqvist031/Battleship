@@ -13,7 +13,7 @@ namespace Battleship
         public Grid OpponentGrid { get; }
         public List<Ship> Ships { get; }
         public List<IPlayerAction> Actions { get; }
-        private readonly IShootingStrategy _shootingStrategy;
+        public IShootingStrategy ShootingStrategy { get; }
 
 
         protected Player(
@@ -30,7 +30,7 @@ namespace Battleship
             OpponentGrid = opponentGrid;
             Ships = ships;
             Actions = new List<IPlayerAction> { new Attack(opponentGrid), new Repair() };
-            _shootingStrategy = shootingStrategy;
+            ShootingStrategy = shootingStrategy;
             
         }
         public void RemoveSunkShip(Ship ship)

@@ -144,12 +144,22 @@ namespace Battleship
                 Player currentPlayer = gameController.GetCurrentPlayer();
                 Console.Clear();
 
-                if(currentPlayer is Human)
+                if (currentPlayer is Human)
                 {
                     DisplayGameState(currentPlayer, gameController);
                     HandleHumanTurn(currentPlayer);
                 }
+                else if (currentPlayer is Computer)
+                {
+                    HandleComputerTurn(currentPlayer);
+                    System.Threading.Thread.Sleep(1000); // Brief pause for transition
+                }
+
+                gameOver = gameController.CheckGameOver(); 
+                gameController.SwitchPlayer();
             }
+
+            Console.WriteLine("Game Over!");
         }
         private void DisplayGameState(Player player, GameController gameController)
         {
@@ -162,7 +172,7 @@ namespace Battleship
 
         private void DisplayGrid(Grid grid, bool showShips) //Update the mark for the cell, print the cell.mark instead
         {
-            Console.Write("  ");
+            Console.Write("   ");
             for (int i = 0; i < Grid.GridSize; i++)
             {
                 Console.Write($"{(char)('A' + i)} ");
@@ -177,7 +187,7 @@ namespace Battleship
                     var cell = grid.Grids[row, col];
                     if (cell.IsHit)
                     {
-                        Console.Write(cell.HasShip() ? "X " : "• ");  
+                        Console.Write(cell.HasShip() ? "X " : "M ");  
                     }
                     else if (showShips && cell.HasShip())
                     {
@@ -237,6 +247,15 @@ namespace Battleship
 
                         break;
                 }
+            }
+        }
+
+        private void HandleComputerTurn(Player computerPlayer)
+        {
+            if (computerPlayer.ShootingStrategy != null)
+            {
+                computerPlayer.ShootingStrategy.Shoot(computerPlayer);
+                Console.WriteLine($"{computerPlayer.Name} has completed its turn.");
             }
         }
 
