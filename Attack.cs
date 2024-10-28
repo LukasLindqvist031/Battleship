@@ -22,7 +22,7 @@ namespace Battleship
 
         public void Execute(Player player, Cell targetCell)
         {
-            if (targetCell == null) //Dubellkolla denna, inte säker på att det är bästa lösningen
+            if (targetCell == null)
             {
                 Console.WriteLine("Invalid target cell.");
                 return;
@@ -36,17 +36,12 @@ namespace Battleship
                 if (targetShip != null)
                 {
                     targetShip.HitTaken++;
-                    targetCell.Mark = "X ";
 
                     if (targetShip.IsSunk())
                     {
                         player.RemoveSunkShip(targetShip);
                     }
                 }
-            }
-            else
-            {
-                targetCell.Mark = "M ";
             }
         }
     }

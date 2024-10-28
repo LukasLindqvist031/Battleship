@@ -6,18 +6,40 @@ using System.Threading.Tasks;
 
 namespace Battleship
 {
+    using System;
+    using System.Linq;
+
     public class Repair : IPlayerAction
     {
         public string Name { get; } = "Repair";
-        public void Execute(Player player, Cell targetCell) //Redunacy. Kan använda null, men blir fucked
+
+        public bool AttemptRepair(Player player)
         {
-            foreach (var ship in player.Ships)
-            {
-                if (!ship.IsSunk() && ship.HitTaken > 0)
-                {
-                    ship.HitTaken--; 
-                }
-            }
+            // Return true if there is at least one damaged, non-sunk ship
+            return player.Ships.Any(ship => !ship.IsSunk() && ship.HitTaken > 0);
         }
+
+        public void Execute(Player player, Cell targetCell = null)
+        {
+            // Filter for damaged, non-sunk ships
+            var damagedShips = player.Ships
+                .Where(ship => !ship.IsSunk() && ship.HitTaken > 0)
+                .ToList();
+
+            // Select a random damaged ship to repair
+            var random = new Random();
+            var shipToRepair = damagedShips[random.Next(damagedShips.Count)];
+            shipToRepair.HitTaken--;  // Repair by reducing the HitTaken count by one
+
+            // Find the first damaged cell and reset its IsHit status
+            var cellToRepair = shipToRepair.PlacedOnCell.FirstOrDefault(cell => cell.IsHit);
+            if (cellToRepair != null)
+            {
+                cellToRepair.IsHit = false;  // Reset IsHit to allow DisplayGrid to show "~"
+            }
+
+            Console.WriteLine($"Repaired a part of the ship with size {shipToRepair.Length}. Remaining hits: {shipToRepair.HitTaken}");
+        }
+
     }
 }

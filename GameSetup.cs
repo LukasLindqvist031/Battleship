@@ -202,12 +202,12 @@ namespace Battleship
             }
         }
 
-        private void HandleHumanTurn(Player currentplayer)
+        private void HandleHumanTurn(Player currentPlayer)
         {
             var menuItem = new List<MenuItem<IPlayerAction>>
             {
-                new MenuItem<IPlayerAction>("Attack", currentplayer.Actions[0]),
-                new MenuItem<IPlayerAction>("Repair", currentplayer.Actions[1])
+                new MenuItem<IPlayerAction>("Attack", currentPlayer.Actions[0]),
+                new MenuItem<IPlayerAction>("Repair", currentPlayer.Actions[1])
             };
 
             var menu = new SimpleMenu<IPlayerAction>(menuItem);
@@ -236,7 +236,7 @@ namespace Battleship
 
                             do
                             {
-                                targetCell = GetTargetCell(currentplayer.OpponentGrid);
+                                targetCell = GetTargetCell(currentPlayer.OpponentGrid);
 
                                 if (targetCell.IsHit)
                                 {
@@ -246,14 +246,23 @@ namespace Battleship
                             } while (targetCell.IsHit);  // Repeat until an un-hit cell is selected
 
                             // Now call Execute with a valid, un-hit cell
-                            attack.Execute(currentplayer, targetCell);
+                            attack.Execute(currentPlayer, targetCell);
                             validAction = true;
                         }
                         else if (action is Repair repair)
                         {
-
+                            // Check if repair is possible
+                            if (repair.AttemptRepair(currentPlayer))
+                            {
+                                // Execute the repair if possible
+                                repair.Execute(currentPlayer, null);
+                                validAction = true;  // Proceed if the repair was successful
+                            }
+                            else
+                            {
+                                Console.WriteLine("No damaged ships to repair. Please choose another action.");
+                            }
                         }
-
                         break;
                 }
             }
