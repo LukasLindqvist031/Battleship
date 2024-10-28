@@ -267,13 +267,13 @@ namespace Battleship
             while (!validInput)
             {
                 Console.WriteLine("\nEnter target coordinates:");
-                Console.Write("Row (0-" + (Grid.GridSize - 1) + "): ");
+                Console.Write("Row (1-" + (Grid.GridSize) + "): ");
                 if (int.TryParse(Console.ReadLine(), out row))
                 {
-                    Console.Write("Column (0-" + (Grid.GridSize - 1) + "): ");
+                    Console.Write("Column (1-" + (Grid.GridSize) + "): ");
                     if (int.TryParse(Console.ReadLine(), out col))
                     {
-                        if (row >= 0 && row < Grid.GridSize && col >= 0 && col < Grid.GridSize)
+                        if (row >= 0 && row <= Grid.GridSize && col >= 0 && col <= Grid.GridSize)
                         {
                             validInput = true;
                         }
@@ -284,7 +284,7 @@ namespace Battleship
                     Console.WriteLine("Invalid coordinates. Please try again.");
                 }
             }
-            return opponentGrid.Grids[row, col];
+            return opponentGrid.Grids[row-1, col-1];
         }
     }
 }

@@ -33,7 +33,7 @@ namespace Battleship
             }
         }
 
-        public void PlaceTestShip(int row, int col)
+        public void PlaceTestShip(int row, int col) //Död kod atm
         {
             if (!IsValidCoordinate(row, col))
             {
@@ -44,7 +44,7 @@ namespace Battleship
             Grids[row - 1, col - 1].Ship = new Ship(3);
         }
 
-        public void ShootTest(int row, int col)
+        public void ShootTest(int row, int col) //Död kod atm
         {
             if (!IsValidCoordinate(row, col))
             {
