@@ -12,7 +12,7 @@ namespace Battleship
     {
         public string Name { get; } = "Attack";
 
-        private Grid _opponentGrid;
+        private Grid _opponentGrid;//Används aldrig?
         private Cell _targetCell; //Används aldrig?
 
         public Attack(Grid opponentGrid)
@@ -36,6 +36,7 @@ namespace Battleship
                 if (targetShip != null)
                 {
                     targetShip.HitTaken++;
+                    targetCell.WasRepaired = false;  // Reset repair status on a new hit to be able to repair the same cell multiple times.
 
                     if (targetShip.IsSunk())
                     {

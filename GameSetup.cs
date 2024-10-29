@@ -183,11 +183,13 @@ namespace Battleship
 
         private char GetCellSymbol(Cell cell, bool hideShips)
         {
-            if (cell.IsHit && cell.HasShip()) return 'X';    // Hit ship
-            if (cell.IsHit && cell.IsEmpty()) return 'M';    // Missed shot
-            if (cell.HasShip() && !hideShips) return 'O';    // Ship
-            return '~';                                       // Empty water
+            if (cell.IsHit && cell.HasShip()) return 'X'; // Hit ship
+            if (cell.IsHit && cell.IsEmpty()) return 'M'; // Missed shot
+            if (!cell.IsHit && cell.HasShip() && !hideShips) return 'O'; // Repaired ship part, visible to owner
+            if (!cell.IsHit && cell.IsEmpty()) return '~'; // Water for empty, unhit cells
+            return '~'; // Default to water for any remaining cases
         }
+
 
         private void HandleHumanTurn(Player currentPlayer)
         {
@@ -268,12 +270,46 @@ namespace Battleship
                         {
                             if (repair.AttemptRepair(currentPlayer))
                             {
-                                repair.Execute(currentPlayer, null);
-                                validAction = true;
+                                Cell targetCell;
+                                bool validCell = false;
+
+                                while (!validCell)
+                                {
+                                    // Prompt for coordinates
+                                    Console.WriteLine("Enter coordinates of the cell to repair:");
+
+                                    Console.Write("Row (0-" + (Grid.GridSize - 1) + "): ");
+                                    int row = int.Parse(Console.ReadLine() ?? "0");
+
+                                    Console.Write("Column (0-" + (Grid.GridSize - 1) + "): ");
+                                    int col = int.Parse(Console.ReadLine() ?? "0");
+
+                                    // Ensure the coordinates are within grid bounds (0-based index)
+                                    if (row >= 0 && row < Grid.GridSize && col >= 0 && col < Grid.GridSize)
+                                    {
+                                        targetCell = currentPlayer.PlayerGrid.Grids[row, col];
+
+                                        // Check if the selected cell is part of a damaged ship
+                                        if (targetCell.IsHit)
+                                        {
+                                            repair.Execute(currentPlayer, targetCell);
+                                            validCell = true;
+                                            validAction = true;
+                                        }
+                                        else
+                                        {
+                                            Console.WriteLine("This cell is not damaged. Please choose a damaged cell.");
+                                        }
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine("Invalid coordinates. Please enter coordinates within the grid.");
+                                    }
+                                }
                             }
                             else
                             {
-                                Console.SetCursorPosition(0, menu.menuTop + menu._menuItems.Count + 1); // Move cursor below the menu
+                                Console.SetCursorPosition(0, menu.menuTop + menu._menuItems.Count + 1);
                                 Console.WriteLine("No damaged ships to repair. Please choose another action.");
                             }
                         }

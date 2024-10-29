@@ -30,7 +30,7 @@ namespace Battleship
             return _currentPlayer == _humanPlayer ? _computerPlayer : _humanPlayer;
         }
 
-        private void DisplayGameState()
+        private void DisplayGameState() //Tror inte denna används, detta görs nu i GameSetup
         {
             Console.Clear();
             Console.WriteLine($"\n{_currentPlayer.Name}'s turn");
@@ -45,7 +45,7 @@ namespace Battleship
             }
         }
 
-        private void DisplayGrid(Grid grid, bool showShips)
+        private void DisplayGrid(Grid grid, bool showShips) //Tror inte denna används, detta görs nu i GameSetup
         {
             Console.WriteLine("  A B C D E F G H I J");
             for (int row = 0; row < 10; row++)
@@ -61,7 +61,7 @@ namespace Battleship
             }
         }
 
-        private char GetCellSymbol(Cell cell, bool showShips)
+        private char GetCellSymbol(Cell cell, bool showShips) //Tror inte denna används, detta görs nu i GameSetup
         {
             if (cell.IsHit)
             {
@@ -76,7 +76,7 @@ namespace Battleship
             return '~';
         }
 
-        private IPlayerAction GetHumanAction(List<IPlayerAction> availableActions)
+        private IPlayerAction GetHumanAction(List<IPlayerAction> availableActions) //Är inte detta samma som HandleHumanTurn i GameSetup?
         {
             while (true)
             {
@@ -98,7 +98,7 @@ namespace Battleship
             }
         }
 
-        private IPlayerAction GetComputerAction(List<IPlayerAction> availableActions)
+        private IPlayerAction GetComputerAction(List<IPlayerAction> availableActions) //Är inte detta samma som HandleComputerTurn i GameSetup?
         {
             // For now, computer always chooses to attack if possible
             var attackAction = availableActions.FirstOrDefault(a => a is Attack); //LLM generated code. Kommentera/källhänvisa på nåt sätt, idk???
