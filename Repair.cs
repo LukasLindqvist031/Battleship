@@ -15,28 +15,38 @@ namespace Battleship
 
         public bool AttemptRepair(Player player)
         {
-            // Return true if there is at least one damaged, non-sunk ship
-            return player.Ships.Any(ship => !ship.IsSunk() && ship.HitTaken > 0);
+            // Check PlayerGrid for any cells with IsHit and an associated Ship
+            foreach (var cell in player.PlayerGrid)
+            {
+                if (cell.IsHit && cell.HasShip())
+                {
+                    return true;  // A damaged cell exists, so allow repair
+                }
+            }
+
+            // If no damaged cells are found, return false
+            return false;
         }
 
-        public void Execute(Player player, Cell targetCell = null)
+
+
+
+        public void Execute(Player player, Cell targetCell)
         {
-            // Filter for damaged, non-sunk ships
-            var damagedShips = player.Ships
-                .Where(ship => !ship.IsSunk() && ship.HitTaken > 0)
-                .ToList();
-
-            // Select a random damaged ship to repair
-            var random = new Random();
-            var shipToRepair = damagedShips[random.Next(damagedShips.Count)];
-            shipToRepair.HitTaken--;  // Repair by reducing the HitTaken count by one
-
-            // Find the first damaged cell and reset its IsHit status
-            var cellToRepair = shipToRepair.PlacedOnCell.FirstOrDefault(cell => cell.IsHit);
-            if (cellToRepair != null)
+            if (targetCell != null && targetCell.IsHit)
             {
-                cellToRepair.IsHit = false;  // Reset IsHit to allow DisplayGrid to show "~"
-                //cellToRepair.Mark = "O ";    // Update the cell mark to "O " for a repaired ship part
+                targetCell.IsHit = false;  // Reset the hit status to indicate repair
+
+                // Find the ship that includes this cell and decrement its HitTaken
+                foreach (var ship in player.Ships)
+                {
+                    if (ship.PlacedOnCell.Contains(targetCell))
+                    {
+                        ship.HitTaken--;  // Decrement HitTaken for the specific ship
+                        targetCell.WasRepaired = true; //Mark as repaired
+                        break;  // Stop after finding the correct ship
+                    }
+                }
             }
         }
     }

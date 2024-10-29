@@ -183,11 +183,13 @@ namespace Battleship
 
         private char GetCellSymbol(Cell cell, bool hideShips)
         {
-            if (cell.IsHit && cell.HasShip()) return 'X';    // Hit ship
-            if (cell.IsHit && cell.IsEmpty()) return 'M';    // Missed shot
-            if (cell.HasShip() && !hideShips) return 'O';    // Ship
-            return '~';                                       // Empty water
+            if (cell.IsHit && cell.HasShip()) return 'X'; // Hit ship
+            if (cell.IsHit && cell.IsEmpty()) return 'M'; // Missed shot
+            if (!cell.IsHit && cell.HasShip() && !hideShips) return 'O'; // Repaired ship part, visible to owner
+            if (!cell.IsHit && cell.IsEmpty()) return '~'; // Water for empty, unhit cells
+            return '~'; // Default to water for any remaining cases
         }
+
 
         private void HandleHumanTurn(Player currentPlayer)
         {
@@ -219,51 +221,95 @@ namespace Battleship
 
                         if (action is Attack attack)
                         {
-                            // Clear previous messages before displaying targeting prompt
                             int messageRow = Console.WindowHeight - 2;
                             Console.SetCursorPosition(0, messageRow);
-                            Console.Write(new string(' ', Console.WindowWidth)); // Clear line
+                            Console.Write(new string(' ', Console.WindowWidth));
 
-                            // Now proceed with prompting for target coordinates
-                            Cell targetCell;
+                            Cell targetCell = null;
+                            bool validInput = false;
                             do
                             {
-                                Console.SetCursorPosition(0, messageRow); // Set cursor for targeting prompt below menu
+                                Console.SetCursorPosition(0, messageRow);
                                 Console.WriteLine("Enter target coordinates:");
 
-                                Console.Write("Row (1-" + (Grid.GridSize) + "): ");
-                                int row = int.Parse(Console.ReadLine() ?? "0"); // Get row
+                                Console.Write("Row (0-" + (Grid.GridSize - 1) + "): ");
+                                int row = int.TryParse(Console.ReadLine(), out var tempRow) ? tempRow : -1; //Better handling of invalid inputs
 
-                                Console.Write("Column (1-" + (Grid.GridSize) + "): ");
-                                int col = int.Parse(Console.ReadLine() ?? "0"); // Get column
+                                Console.Write("Column (0-" + (Grid.GridSize - 1) + "): ");
+                                int col = int.TryParse(Console.ReadLine(), out var tempCol) ? tempCol : -1; //Better handling of invalid inputs
 
-                                targetCell = currentPlayer.OpponentGrid.Grids[row - 1, col - 1];
-
-                                if (targetCell.IsHit)
+                                if (row >= 0 && row < Grid.GridSize && col >= 0 && col < Grid.GridSize)
                                 {
-                                    Console.WriteLine("This cell has already been hit. Please enter new coordinates.");
-                                    // Clear the row where error message is displayed for clarity in repeated prompts
+                                    targetCell = currentPlayer.OpponentGrid.Grids[row, col];
+                                    if (!targetCell.IsHit)
+                                    {
+                                        validInput = true;
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine("This cell has already been hit. Please enter new coordinates.");
+                                        Console.SetCursorPosition(0, messageRow + 1);
+                                        Console.Write(new string(' ', Console.WindowWidth));
+                                    }
+                                }
+                                else
+                                {
+                                    Console.WriteLine("Invalid coordinates. Please enter values within the grid range.");
                                     Console.SetCursorPosition(0, messageRow + 1);
                                     Console.Write(new string(' ', Console.WindowWidth));
                                 }
 
-                            } while (targetCell.IsHit); // Repeat until an un-hit cell is selected
+                            } while (!validInput);
 
-                            // Call Execute with the valid target cell
                             attack.Execute(currentPlayer, targetCell);
                             validAction = true;
                         }
+
 
                         else if (action is Repair repair)
                         {
                             if (repair.AttemptRepair(currentPlayer))
                             {
-                                repair.Execute(currentPlayer, null);
-                                validAction = true;
+                                Cell targetCell;
+                                bool validCell = false;
+
+                                while (!validCell)
+                                {
+                                    // Prompt for coordinates
+                                    Console.WriteLine("Enter coordinates of the cell to repair:");
+
+                                    Console.Write("Row (0-" + (Grid.GridSize - 1) + "): ");
+                                    int row = int.Parse(Console.ReadLine() ?? "0");
+
+                                    Console.Write("Column (0-" + (Grid.GridSize - 1) + "): ");
+                                    int col = int.Parse(Console.ReadLine() ?? "0");
+
+                                    // Ensure the coordinates are within grid bounds (0-based index)
+                                    if (row >= 0 && row < Grid.GridSize && col >= 0 && col < Grid.GridSize)
+                                    {
+                                        targetCell = currentPlayer.PlayerGrid.Grids[row, col];
+
+                                        // Check if the selected cell is part of a damaged ship
+                                        if (targetCell.IsHit)
+                                        {
+                                            repair.Execute(currentPlayer, targetCell);
+                                            validCell = true;
+                                            validAction = true;
+                                        }
+                                        else
+                                        {
+                                            Console.WriteLine("This cell is not damaged. Please choose a damaged cell.");
+                                        }
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine("Invalid coordinates. Please enter coordinates within the grid.");
+                                    }
+                                }
                             }
                             else
                             {
-                                Console.SetCursorPosition(0, menu.menuTop + menu._menuItems.Count + 1); // Move cursor below the menu
+                                Console.SetCursorPosition(0, menu.menuTop + menu._menuItems.Count + 1);
                                 Console.WriteLine("No damaged ships to repair. Please choose another action.");
                             }
                         }
@@ -281,7 +327,7 @@ namespace Battleship
             }
         }
 
-        private Cell GetTargetCell(Grid opponentGrid)
+        private Cell GetTargetCell(Grid opponentGrid) //Denna är onödig, allt detta görs i HandleHumanTurn nu (testade att kommentera bort den o köra och det funkade).
         {
             int row = 0, col = 0;
             bool validInput = false;
@@ -289,13 +335,13 @@ namespace Battleship
             while (!validInput)
             {
                 Console.WriteLine("\nEnter target coordinates:");
-                Console.Write("Row (1-" + (Grid.GridSize) + "): ");
+                Console.Write("Row (0-" + (Grid.GridSize-1) + "): ");
                 if (int.TryParse(Console.ReadLine(), out row))
                 {
-                    Console.Write("Column (1-" + (Grid.GridSize) + "): ");
+                    Console.Write("Column (0-" + (Grid.GridSize-1) + "): ");
                     if (int.TryParse(Console.ReadLine(), out col))
                     {
-                        if (row >= 0 && row <= Grid.GridSize && col >= 0 && col <= Grid.GridSize)
+                        if (row >= 0 && row < Grid.GridSize && col >= 0 && col < Grid.GridSize)
                         {
                             validInput = true;
                         }
