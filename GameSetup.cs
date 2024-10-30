@@ -148,11 +148,36 @@ namespace Battleship
         }
         private void DisplayGameState(Player player, GameController gameController)
         {
-            Console.WriteLine($"{player.Name}'s Grid:");
-            DisplayGrid(player.PlayerGrid, false);  // Show ships for player grid
+            Console.WriteLine($"{player.Name}'s Grid:".PadRight(25) + $"{gameController.GetOpponent().Name}'s Grid:");
+            DisplaySideBySideGrids(player.PlayerGrid, player.OpponentGrid, hideOpponentShips: true);
+        }
 
-            Console.WriteLine($"\n{gameController.GetOpponent().Name}'s Grid:");
-            DisplayGrid(player.OpponentGrid, true);  // Hide ships on opponent grid
+        private void DisplaySideBySideGrids(Grid playerGrid, Grid opponentGrid, bool hideOpponentShips)
+        {
+            Console.WriteLine("  0 1 2 3 4 5 6 7 8 9   ".PadRight(25) + "  0 1 2 3 4 5 6 7 8 9");
+            for (int row = 0; row < Grid.GridSize; row++)
+            {
+                // Display player grid row
+                Console.Write($"{row} ");
+                for (int col = 0; col < Grid.GridSize; col++)
+                {
+                    char playerSymbol = GetCellSymbol(playerGrid.Grids[row, col], false);
+                    Console.Write($"{playerSymbol} ");
+                }
+
+                // Spacer between grids
+                Console.Write("   ");
+
+                // Display opponent grid row
+                Console.Write($"{row} ");
+                for (int col = 0; col < Grid.GridSize; col++)
+                {
+                    char opponentSymbol = GetCellSymbol(opponentGrid.Grids[row, col], hideOpponentShips);
+                    Console.Write($"{opponentSymbol} ");
+                }
+
+                Console.WriteLine();
+            }
         }
 
         public void DisplayGrid(Grid grid, bool hideShips = false)
