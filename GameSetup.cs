@@ -57,7 +57,7 @@ namespace Battleship
             _shipPlacementService.PlaceShipRandomly(playerGrid, ships);
             _shipPlacementService.PlaceShipRandomly(computerGrid, ships.Select(s => s.Clone()).ToArray());
 
-            var human = new Human(playerName, playerGrid, computerGrid, ships.ToList(), playerActions, new RandomShooting());
+            var human = new Human(playerName, playerGrid, computerGrid, ships.ToList(), playerActions, new UserShooting());
             var computer = new Computer("Computer", computerGrid, playerGrid, ships.Select(s => s.Clone()).ToList(), computerActions, computerStrategy);
 
             var gameController = new GameController(human, computer, _display);
@@ -126,39 +126,7 @@ namespace Battleship
 
                         if (action is Attack attack)
                         {
-
-                            Cell targetCell = null;
-                            bool validInput = false;
-                            do
-                            {
-                                Console.WriteLine("Enter target coordinates:");
-
-                                Console.Write("Row (0-" + (Grid.GridSize - 1) + "): ");
-                                int row = int.TryParse(Console.ReadLine(), out var tempRow) ? tempRow : -1; //Better handling of invalid inputs
-
-                                Console.Write("Column (0-" + (Grid.GridSize - 1) + "): ");
-                                int col = int.TryParse(Console.ReadLine(), out var tempCol) ? tempCol : -1; //Better handling of invalid inputs
-
-                                if (row >= 0 && row < Grid.GridSize && col >= 0 && col < Grid.GridSize)
-                                {
-                                    targetCell = currentPlayer.OpponentGrid.Grids[row, col];
-                                    if (!targetCell.IsHit)
-                                    {
-                                        validInput = true;
-                                    }
-                                    else
-                                    {
-                                        Console.WriteLine("This cell has already been hit. Please enter new coordinates.");
-                                    }
-                                }
-                                else
-                                {
-                                    Console.WriteLine("Invalid coordinates. Please enter values within the grid range.");
-                                }
-
-                            } while (!validInput);
-
-                            attack.Execute(currentPlayer, targetCell);
+                            currentPlayer.ShootingStrategy.Shoot(currentPlayer);
                             validAction = true;
                         }
 
