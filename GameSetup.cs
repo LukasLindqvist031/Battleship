@@ -345,39 +345,48 @@ namespace Battleship
 
         private void HandleComputerTurn(Player computerPlayer)
         {
-            if (computerPlayer.ShootingStrategy != null)
-            {
-                computerPlayer.ShootingStrategy.Shoot(computerPlayer);
-                Console.WriteLine($"{computerPlayer.Name} has completed its turn.");
-            }
-        }
+            Random random = new Random();
 
-        private Cell GetTargetCell(Grid opponentGrid) //Denna är onödig, allt detta görs i HandleHumanTurn nu (testade att kommentera bort den o köra och det funkade).
-        {
-            int row = 0, col = 0;
-            bool validInput = false;
+            // Check if there are any damaged cells in non-sunk ships
+            var damagedCells = computerPlayer.PlayerGrid.Grids
+                .Cast<Cell>()
+                .Where(cell => cell.IsHit && cell.Ship != null && !cell.Ship.IsSunk())
+                .ToList();
 
-            while (!validInput)
+            // If no damaged cells are found, the computer should attack
+            if (!damagedCells.Any())
             {
-                Console.WriteLine("\nEnter target coordinates:");
-                Console.Write("Row (0-" + (Grid.GridSize-1) + "): ");
-                if (int.TryParse(Console.ReadLine(), out row))
+                computerPlayer.ShootingStrategy?.Shoot(computerPlayer);
+                Console.WriteLine($"{computerPlayer.Name} has completed its turn by shooting.");
+                return;
+            }
+
+            // 30% chance to repair if there are damaged cells
+            bool shouldRepair = random.Next(1, 101) <= 30;
+
+            if (shouldRepair)
+            {
+                // Find the Repair action within the computer's actions
+                var repairAction = computerPlayer.Actions.OfType<Repair>().FirstOrDefault();
+
+                if (repairAction != null)
                 {
-                    Console.Write("Column (0-" + (Grid.GridSize-1) + "): ");
-                    if (int.TryParse(Console.ReadLine(), out col))
-                    {
-                        if (row >= 0 && row < Grid.GridSize && col >= 0 && col < Grid.GridSize)
-                        {
-                            validInput = true;
-                        }
-                    }
+                    // Select a random damaged cell from a non-sunk ship
+                    Cell targetCell = damagedCells[random.Next(damagedCells.Count)];
+                    repairAction.Execute(computerPlayer, targetCell);
+                    Console.WriteLine($"{computerPlayer.Name} chose to repair a damaged cell at ({targetCell.Row}, {targetCell.Column}).");
                 }
-                if (!validInput)
+                else
                 {
-                    Console.WriteLine("Invalid coordinates. Please try again.");
+                    Console.WriteLine($"{computerPlayer.Name} attempted to repair but had no repair action available.");
                 }
             }
-            return opponentGrid.Grids[row-1, col-1];
+            else
+            {
+                // If repair is not chosen, proceed with shooting
+                computerPlayer.ShootingStrategy?.Shoot(computerPlayer);
+                Console.WriteLine($"{computerPlayer.Name} has completed its turn by shooting.");
+            }
         }
     }
 }
