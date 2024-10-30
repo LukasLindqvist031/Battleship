@@ -28,6 +28,7 @@ namespace Battleship
 
         private IShootingStrategy SelectComputerStrategy()
         {
+            _display.ShowMessage("Select the computer's strategy:");
             var strategies = new List<MenuItem<IShootingStrategy>>
         {
             new MenuItem<IShootingStrategy>("Random Strategy", new RandomShooting()),
@@ -37,7 +38,6 @@ namespace Battleship
             var strategyMenu = new SimpleMenu<IShootingStrategy>(strategies);
             var navigator = new ActionNavigator<IShootingStrategy>(strategyMenu);
 
-            _display.ShowMessage("Select the computer's strategy:");
             return navigator.Navigate();
         }
 
@@ -126,15 +126,11 @@ namespace Battleship
 
                         if (action is Attack attack)
                         {
-                            int messageRow = Console.WindowHeight - 2;
-                            Console.SetCursorPosition(0, messageRow);
-                            Console.Write(new string(' ', Console.WindowWidth));
 
                             Cell targetCell = null;
                             bool validInput = false;
                             do
                             {
-                                Console.SetCursorPosition(0, messageRow);
                                 Console.WriteLine("Enter target coordinates:");
 
                                 Console.Write("Row (0-" + (Grid.GridSize - 1) + "): ");
@@ -153,15 +149,11 @@ namespace Battleship
                                     else
                                     {
                                         Console.WriteLine("This cell has already been hit. Please enter new coordinates.");
-                                        Console.SetCursorPosition(0, messageRow + 1);
-                                        Console.Write(new string(' ', Console.WindowWidth));
                                     }
                                 }
                                 else
                                 {
                                     Console.WriteLine("Invalid coordinates. Please enter values within the grid range.");
-                                    Console.SetCursorPosition(0, messageRow + 1);
-                                    Console.Write(new string(' ', Console.WindowWidth));
                                 }
 
                             } while (!validInput);
@@ -214,7 +206,7 @@ namespace Battleship
                             }
                             else
                             {
-                                Console.SetCursorPosition(0, menu.menuTop + menu._menuItems.Count + 1);
+                                //Console.SetCursorPosition(0, menu.menuTop + menu._menuItems.Count + 1);
                                 Console.WriteLine("No damaged ships to repair. Please choose another action.");
                             }
                         }

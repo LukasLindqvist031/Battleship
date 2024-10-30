@@ -22,7 +22,7 @@ namespace Battleship
 
         public void Execute(Player player, Cell targetCell)
         {
-            if (targetCell == null)
+            if (targetCell == null) //Bruh... Ta bort?
             {
                 Console.WriteLine("Invalid target cell.");
                 return;
