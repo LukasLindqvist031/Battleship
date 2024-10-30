@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Battleship
 {
-    public class SimpleMenu<T>
+    public class SimpleMenu<T> : IMenu<T>
     {
         public readonly List<MenuItem<T>> _menuItems;
         public int _selectedIndex;
@@ -66,9 +66,9 @@ namespace Battleship
                 Draw();
             }
         }
-        public MenuItem<T> GetSelectedItem()
+        public T GetSelectedItem()
         {
-            return _menuItems[_selectedIndex];
+            return _menuItems[_selectedIndex].Value;
         }
     }
 }

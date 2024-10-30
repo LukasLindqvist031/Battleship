@@ -10,16 +10,19 @@ namespace Battleship
     public class GameSetup
     {
         private readonly ShipPlacementService _shipPlacementService;
+        private readonly IDisplay _display;
 
-        public GameSetup()
+        public GameSetup(IDisplay display)
         {
             _shipPlacementService = new ShipPlacementService();
+            _display = display;
         }
         private string GetPlayerName()
         {
             Console.WriteLine("Welcome to Battleship!");
             Console.Write("Enter your name: ");
             string name = Console.ReadLine()?.Trim() ?? "Player";
+            Console.Clear();
             return string.IsNullOrEmpty(name) ? "Player" : name;
         }
 
@@ -28,96 +31,36 @@ namespace Battleship
             var strategies = new List<MenuItem<IShootingStrategy>>
         {
             new MenuItem<IShootingStrategy>("Random Strategy", new RandomShooting()),
-            new MenuItem<IShootingStrategy>("Intelligent Strategy", new IntelligentShooting()),
+            new MenuItem<IShootingStrategy>("Intelligent Strategy", new IntelligentShooting())
         };
 
-            var menu = new SimpleMenu<IShootingStrategy>(strategies);
-            
+            var strategyMenu = new SimpleMenu<IShootingStrategy>(strategies);
+            var navigator = new ActionNavigator<IShootingStrategy>(strategyMenu);
 
-            while (true)
-            {
-                //Console.WriteLine("\nSelect computer's strategy:");
-                menu.Draw();
-                var key = Console.ReadKey(true);
-
-                switch (key.Key)
-                {
-                    case ConsoleKey.UpArrow:
-                        menu.Up();
-                        break;
-                    case ConsoleKey.DownArrow:
-                        menu.Down();
-                        break;
-                    case ConsoleKey.Enter:
-                        return menu.GetSelectedItem().Value;
-                }
-            }
+            _display.ShowMessage("Select the computer's strategy:");
+            return navigator.Navigate();
         }
 
 
         public void Run()
         {
-            // Welcome to Battleship! Press Enter to continue
-            // What's your name? 
-            // Select a strategy for the computer
-            // Create Human and Computer
-            // Start playing by selecting a square
-            //Menu will be implemented among other places, in ShootingStrategy for Human in his UserShootingStrategy
-
-            Console.Clear();
             string playerName = GetPlayerName();
-            Console.Clear();
             IShootingStrategy computerStrategy = SelectComputerStrategy();
-            
 
             Grid playerGrid = new Grid();
             Grid computerGrid = new Grid();
 
-            var playerActions = new List<IPlayerAction> //Code reuse
-            {
-                new Attack(computerGrid),
-                new Repair()
-            };
-            var computerActions = new List<IPlayerAction>
-            {
-                new Attack(playerGrid),
-                new Repair()
-            };
+            var playerActions = new List<IPlayerAction> { new Attack(computerGrid), new Repair() };
+            var computerActions = new List<IPlayerAction> { new Attack(playerGrid), new Repair() };
 
-            Ship[] ships = new Ship[]
-            {
-                new Ship(5),
-                new Ship(4),
-                new Ship(3),
-                new Ship(2),
-                new Ship(1)
-            };
-
+            Ship[] ships = { new Ship(5), new Ship(4), new Ship(3), new Ship(2), new Ship(1) };
             _shipPlacementService.PlaceShipRandomly(playerGrid, ships);
             _shipPlacementService.PlaceShipRandomly(computerGrid, ships.Select(s => s.Clone()).ToArray());
 
-            var playerShips = ships.ToList();
-            var computerShips = ships.Select(s => s.Clone()).ToList();
+            var human = new Human(playerName, playerGrid, computerGrid, ships.ToList(), playerActions, new RandomShooting());
+            var computer = new Computer("Computer", computerGrid, playerGrid, ships.Select(s => s.Clone()).ToList(), computerActions, computerStrategy);
 
-            var human = new Human(
-            name: playerName,
-            playerGrid: playerGrid,
-            opponentGrid: computerGrid,
-            ships: playerShips,
-            actions: playerActions,
-            shootingStrategy: new RandomShooting()
-            );
-
-            var computer = new Computer(
-                name: "Computer",
-                playerGrid: computerGrid,
-                opponentGrid: playerGrid,
-                ships: computerShips,
-                actions: computerActions,
-                shootingStrategy: new IntelligentShooting()
-            );
-
-            var gameController = new GameController(human, computer);
+            var gameController = new GameController(human, computer, _display);
             RunGameLoop(gameController);
         }
 
@@ -149,70 +92,7 @@ namespace Battleship
         private void DisplayGameState(Player player, GameController gameController)
         {
             Console.WriteLine($"{player.Name}'s Grid:".PadRight(25) + $"{gameController.GetOpponent().Name}'s Grid:");
-            DisplaySideBySideGrids(player.PlayerGrid, player.OpponentGrid, hideOpponentShips: true);
-        }
-
-        private void DisplaySideBySideGrids(Grid playerGrid, Grid opponentGrid, bool hideOpponentShips)
-        {
-            Console.WriteLine("  0 1 2 3 4 5 6 7 8 9   ".PadRight(25) + "  0 1 2 3 4 5 6 7 8 9");
-            for (int row = 0; row < Grid.GridSize; row++)
-            {
-                // Display player grid row
-                Console.Write($"{row} ");
-                for (int col = 0; col < Grid.GridSize; col++)
-                {
-                    char playerSymbol = GetCellSymbol(playerGrid.Grids[row, col], false);
-                    Console.Write($"{playerSymbol} ");
-                }
-
-                // Spacer between grids
-                Console.Write("   ");
-
-                // Display opponent grid row
-                Console.Write($"{row} ");
-                for (int col = 0; col < Grid.GridSize; col++)
-                {
-                    char opponentSymbol = GetCellSymbol(opponentGrid.Grids[row, col], hideOpponentShips);
-                    Console.Write($"{opponentSymbol} ");
-                }
-
-                Console.WriteLine();
-            }
-        }
-
-        public void DisplayGrid(Grid grid, bool hideShips = false)
-        {
-            Console.WriteLine("  0 1 2 3 4 5 6 7 8 9");
-            int currentRow = 0;
-            int cellsInRow = 0;
-
-            foreach (Cell cell in grid)
-            {
-                if (cellsInRow == 0)
-                {
-                    Console.Write($"{currentRow} ");
-                }
-
-                char symbol = GetCellSymbol(cell, hideShips);
-                Console.Write($"{symbol} ");
-
-                cellsInRow++;
-                if (cellsInRow == Grid.GridSize)
-                {
-                    Console.WriteLine();
-                    cellsInRow = 0;
-                    currentRow++;
-                }
-            }
-        }
-
-        private char GetCellSymbol(Cell cell, bool hideShips)
-        {
-            if (cell.IsHit && cell.HasShip()) return 'X'; // Hit ship
-            if (cell.IsHit && cell.IsEmpty()) return 'M'; // Missed shot
-            if (!cell.IsHit && cell.HasShip() && !hideShips) return 'O'; // Repaired ship part, visible to owner
-            if (!cell.IsHit && cell.IsEmpty()) return '~'; // Water for empty, unhit cells
-            return '~'; // Default to water for any remaining cases
+            _display.DrawGrid(player.PlayerGrid, player.OpponentGrid, hideShips: true);
         }
 
 
@@ -242,7 +122,7 @@ namespace Battleship
                         break;
                     case ConsoleKey.Enter:
                         var selectedItem = menu.GetSelectedItem();
-                        var action = selectedItem.Value;
+                        var action = selectedItem;
 
                         if (action is Attack attack)
                         {

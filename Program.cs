@@ -1,4 +1,6 @@
 ﻿using Battleship;
 
-GameSetup game = new GameSetup();
+IDisplay display = new GameDisplay();
+
+GameSetup game = new GameSetup(display);
 game.Run();

@@ -6,11 +6,9 @@ using System.Threading.Tasks;
 
 namespace Battleship
 {
-    public interface IMenu<T>
+    public interface IDisplay
     {
-        void Draw();
-        void Up();
-        void Down();
-        T GetSelectedItem();
+        void DrawGrid(Grid playerGrid, Grid opponentGrid, bool hideShips);
+        void ShowMessage(string message);
     }
 }
