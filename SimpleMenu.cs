@@ -70,5 +70,24 @@ namespace Battleship
         {
             return _menuItems[_selectedIndex].Value;
         }
+        public void WriteCenteredTextWithDelay(string text, int delay = 50)
+        {
+            int consoleWidth = Console.WindowWidth;
+            int consoleHeight = Console.WindowHeight;
+
+            int xPos = (consoleWidth - text.Length) / 2;
+            int yPos = consoleHeight / 2;
+
+            Console.Clear();
+            Console.SetCursorPosition(xPos, yPos);
+
+            foreach (char c in text)
+            {
+                Console.Write(c);
+                Thread.Sleep(delay);  // Adjust delay for speed
+            }
+
+            Console.WriteLine();  // Move to the next line after the text
+        }
     }
 }
