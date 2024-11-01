@@ -39,8 +39,8 @@ namespace Battleship
             TextPresentation.WriteCenteredTextWithDelay("Select the computer's strategy:");
             var strategies = new List<MenuItem<IShootingStrategy>>
         {
-            new MenuItem<IShootingStrategy>("Random Strategy", new RandomShooting()),
-            new MenuItem<IShootingStrategy>("Intelligent Strategy", new IntelligentShooting())
+            new("Random Strategy", new RandomShooting()),
+            new("Intelligent Strategy", new IntelligentShooting())
         };
 
             var strategyMenu = new SimpleMenu<IShootingStrategy>(strategies);
@@ -115,8 +115,8 @@ namespace Battleship
         {
             var menuItem = new List<MenuItem<IPlayerAction>>
             {
-                new MenuItem<IPlayerAction>("Attack", currentPlayer.Actions[0]),
-                new MenuItem<IPlayerAction>("Repair", currentPlayer.Actions[1])
+                new("Attack", currentPlayer.Actions[0]),
+                new("Repair", currentPlayer.Actions[1])
             };
 
             var menu = new SimpleMenu<IPlayerAction>(menuItem);
@@ -155,7 +155,6 @@ namespace Battleship
 
                                 while (!validCell)
                                 {
-                                    // Prompt for coordinates
                                     Console.WriteLine("Enter coordinates of the cell to repair:");
 
                                     Console.Write("Row (0-" + (Grid.GridSize - 1) + "): ");
@@ -164,12 +163,10 @@ namespace Battleship
                                     Console.Write("Column (0-" + (Grid.GridSize - 1) + "): ");
                                     int col = int.Parse(Console.ReadLine() ?? "0");
 
-                                    // Ensure the coordinates are within grid bounds (0-based index)
                                     if (row >= 0 && row < Grid.GridSize && col >= 0 && col < Grid.GridSize)
                                     {
                                         targetCell = currentPlayer.PlayerGrid.Grids[row, col];
 
-                                        // Check if the selected cell is part of a damaged ship
                                         if (targetCell.IsHit)
                                         {
                                             repair.Execute(currentPlayer, targetCell);
@@ -199,15 +196,13 @@ namespace Battleship
 
         private void HandleComputerTurn(Player computerPlayer)
         {
-            Random random = new Random();
+            var random = new Random();
 
-            // Check if there are any damaged cells in non-sunk ships
             var damagedCells = computerPlayer.PlayerGrid.Grids
                 .Cast<Cell>()
                 .Where(cell => cell.IsHit && cell.Ship != null && !cell.Ship.IsSunk())
                 .ToList();
 
-            // If no damaged cells are found, the computer should attack
             if (!damagedCells.Any())
             {
                 computerPlayer.ShootingStrategy?.Shoot(computerPlayer);
@@ -215,31 +210,24 @@ namespace Battleship
                 return;
             }
 
-            // 30% chance to repair if there are damaged cells
             bool shouldRepair = random.Next(1, 101) <= 30;
 
             if (shouldRepair)
             {
-                // Find the Repair action within the computer's actions
                 var repairAction = computerPlayer.Actions.OfType<Repair>().FirstOrDefault();
 
                 if (repairAction != null)
                 {
-                    // Select a random damaged cell from a non-sunk ship
                     Cell targetCell = damagedCells[random.Next(damagedCells.Count)];
                     repairAction.Execute(computerPlayer, targetCell);
-                    Console.WriteLine($"{computerPlayer.Name} chose to repair a damaged cell at ({targetCell.Row}, {targetCell.Column}).");
+                    Console.WriteLine(
+                        $"{computerPlayer.Name} chose to repair a damaged cell at ({targetCell.Row}, {targetCell.Column}).");
                 }
                 else
                 {
-                    Console.WriteLine($"{computerPlayer.Name} attempted to repair but had no repair action available."); //Detta borde inte kunna hända va med tanke på att vi kollar om det finns några reparerbara skäpp innan.
+                    computerPlayer.ShootingStrategy?.Shoot(computerPlayer);
+                    Console.WriteLine($"{computerPlayer.Name} has completed its turn by shooting.");
                 }
-            }
-            else
-            {
-                // If repair is not chosen, proceed with shooting
-                computerPlayer.ShootingStrategy?.Shoot(computerPlayer);
-                Console.WriteLine($"{computerPlayer.Name} has completed its turn by shooting.");
             }
         }
     }

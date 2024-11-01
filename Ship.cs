@@ -25,11 +25,6 @@ namespace Battleship
         {
             return HitTaken >= Length;
         }
-
-        public void TakeHit()
-        {
-            HitTaken++;
-        }
         public Ship Clone()
         {
             return new Ship(Length);

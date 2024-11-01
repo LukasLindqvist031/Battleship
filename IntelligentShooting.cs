@@ -9,8 +9,8 @@ namespace Battleship
     public class IntelligentShooting : IShootingStrategy
     {
         private readonly Random _random;
-        private List<Cell> _hitCells;  // Lista över träffade celler
-        private Queue<Cell> _possibleTargets;  // Möjliga målceller runt ett träffat skepp
+        private List<Cell> _hitCells;
+        private readonly Queue<Cell> _possibleTargets;
 
         public IntelligentShooting()
         {
@@ -18,44 +18,35 @@ namespace Battleship
             _hitCells = new List<Cell>();
             _possibleTargets = new Queue<Cell>();
         }
-
         public void Shoot(Player player)
         {
-            // Hämta motståndarens grid
             Grid opponentGrid = player.OpponentGrid;
 
-            // Om vi har målceller att skjuta på (närliggande celler), välj från den kön
             if (_possibleTargets.Count > 0)
             {
-                Cell targetCell = _possibleTargets.Dequeue(); // Hämta nästa cell från kön (Dequeue removes and returns the object at the beginning of the Queue<Cell>).
+                Cell targetCell = _possibleTargets.Dequeue();
 
-                // Om cellen redan har blivit träffad, välj en ny cell
                 if (targetCell.IsHit)
                 {
-                    Shoot(player); // Skjut igen
+                    Shoot(player);
                     return;
                 }
-
                 ExecuteAttack(player, targetCell);
             }
             else
             {
-                // Annars, välj en slumpmässig cell om det inte finns några närliggande mål
                 Cell targetCell = IsValidShoot(opponentGrid);
                 ExecuteAttack(player, targetCell);
             }
         }
-
         private void ExecuteAttack(Player player, Cell targetCell)
         {
             Attack attack = new Attack(player.OpponentGrid);
             attack.Execute(player, targetCell);
 
-            if (!targetCell.IsEmpty() && targetCell.IsHit)  // Om träff på skepp
+            if (!targetCell.IsEmpty() && targetCell.IsHit)
             {
-                _hitCells.Add(targetCell);  // Lägg till i listan med träffar
-
-                // Lägg till möjliga målceller (upp, ner, vänster, höger)
+                _hitCells.Add(targetCell);
                 AddAdjacentCellsToTargets(player.OpponentGrid, targetCell);
             }
         }
@@ -65,21 +56,18 @@ namespace Battleship
             int row = cell.Row;
             int col = cell.Column;
 
-            // Lägg till de 4 närliggande cellerna om de är giltiga skottmål
-            if (row > 0 && !opponentGrid.Grids[row - 1, col].IsHit) // Upp
-                _possibleTargets.Enqueue(opponentGrid.Grids[row - 1, col]); //(Enqueue adds an object to the end of the Queue<Cell>).
+            if (row > 0 && !opponentGrid.Grids[row - 1, col].IsHit)
+                _possibleTargets.Enqueue(opponentGrid.Grids[row - 1, col]);
 
-            if (row < Grid.GridSize - 1 && !opponentGrid.Grids[row + 1, col].IsHit) // Ner
+            if (row < Grid.GridSize - 1 && !opponentGrid.Grids[row + 1, col].IsHit)
                 _possibleTargets.Enqueue(opponentGrid.Grids[row + 1, col]);
 
-            if (col > 0 && !opponentGrid.Grids[row, col - 1].IsHit) // Vänster
+            if (col > 0 && !opponentGrid.Grids[row, col - 1].IsHit)
                 _possibleTargets.Enqueue(opponentGrid.Grids[row, col - 1]);
 
-            if (col < Grid.GridSize - 1 && !opponentGrid.Grids[row, col + 1].IsHit) // Höger
+            if (col < Grid.GridSize - 1 && !opponentGrid.Grids[row, col + 1].IsHit)
                 _possibleTargets.Enqueue(opponentGrid.Grids[row, col + 1]);
         }
-
-        // Denna metod returnerar en slumpmässig valid cell (samma som RandomShooting, kan man typ göra en egen class eller nått med denna så man slipper upprepa den?).
         private Cell IsValidShoot(Grid opponentGrid)
         {
             Cell targetCell;

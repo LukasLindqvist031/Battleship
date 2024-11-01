@@ -6,6 +6,10 @@ using System.Threading.Tasks;
 
 namespace Battleship
 {
+    // KRAV #3:
+    // 1: Bridge Pattern
+    // 2: Player-abstraktionen samarbetar med IShootingStrategy-abstraktionen, och spelet sätter ihop dessa typer för att skapa olika spelarbeteenden.
+    // 3: Bridge Pattern separerar hierarkierna Player och ShootingStrategy, vilket främjar modularitet och olika strategier.
     public abstract class Player 
     {
         public string Name { get; }
@@ -42,21 +46,5 @@ namespace Battleship
         {
             return !PlayerGrid.Any(cell => cell.HasShip() && !cell.IsHit);
         }
-        /*public void PerformAction(int actionIndex)
-        {
-            if (actionIndex >= 0 && actionIndex < Actions.Count)
-            {
-                Actions[actionIndex].Execute(this); // Execute the chosen action
-            }
-            else
-            {
-                throw new ArgumentOutOfRangeException("Invalid action index");
-            }
-        }
-
-        public void PerformShooting()
-        {
-            ShootingStrategy.Shoot(this); // Use the injected shooting strategy
-        }*/
     }
 }

@@ -12,7 +12,7 @@ namespace Battleship
         private readonly Player _computerPlayer;
         private readonly IDisplay _display;
         private Player _currentPlayer;
-        private bool _isGameOver;
+        private bool _isGameOver = false;
 
         public GameController(Player humanPlayer, Player computerPlayer, IDisplay display)
         {
@@ -20,7 +20,6 @@ namespace Battleship
             _computerPlayer = computerPlayer;
             _display = display;
             _currentPlayer = humanPlayer;
-            _isGameOver = false;
         }
 
         public Player GetCurrentPlayer()

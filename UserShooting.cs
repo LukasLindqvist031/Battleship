@@ -18,7 +18,6 @@ namespace Battleship
                 Attack attack = new Attack(opponentGrid);
                 attack.Execute(player, targetCell);
 
-                // Display result of the attack
                 if (targetCell.HasShip())
                 {
                     Console.WriteLine("Hit! You've struck an enemy ship!");
@@ -31,8 +30,6 @@ namespace Battleship
                 {
                     Console.WriteLine("Miss! You hit the water.");
                 }
-
-                // Small pause to let the player see the result
                 System.Threading.Thread.Sleep(1500);
             }
         }
@@ -43,7 +40,6 @@ namespace Battleship
             {
                 Console.WriteLine("\nEnter target coordinates:");
 
-                // Get row input
                 Console.Write($"Row (0-{Grid.GridSize - 1}): ");
                 if (!int.TryParse(Console.ReadLine(), out int row) || row < 0 || row >= Grid.GridSize)
                 {
@@ -51,7 +47,6 @@ namespace Battleship
                     continue;
                 }
 
-                // Get column input
                 Console.Write($"Column (0-{Grid.GridSize - 1}): ");
                 if (!int.TryParse(Console.ReadLine(), out int col) || col < 0 || col >= Grid.GridSize)
                 {
@@ -61,7 +56,6 @@ namespace Battleship
 
                 Cell targetCell = opponentGrid.Grids[row, col];
 
-                // Check if cell has already been hit
                 if (targetCell.IsHit)
                 {
                     Console.WriteLine("This cell has already been targeted. Please choose another location.");

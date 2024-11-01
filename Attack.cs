@@ -12,8 +12,8 @@ namespace Battleship
     {
         public string Name { get; } = "Attack";
 
-        private Grid _opponentGrid;//Används aldrig?
-        private Cell _targetCell; //Används aldrig?
+        private Grid _opponentGrid;
+        //private Cell _targetCell; //Används aldrig?
 
         public Attack(Grid opponentGrid)
         {
@@ -22,12 +22,6 @@ namespace Battleship
 
         public void Execute(Player player, Cell targetCell)
         {
-            if (targetCell == null) //Bruh... Ta bort?
-            {
-                Console.WriteLine("Invalid target cell.");
-                return;
-            }
-
             targetCell.IsHit = true;
 
             if (!targetCell.IsEmpty())

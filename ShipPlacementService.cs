@@ -7,10 +7,12 @@ using System.Threading.Tasks;
 
 namespace Battleship
 {
+    // KRAV #5:
+    // 1: LINQ
+    // 2: LINQ querys hjälper till att identifiera tillgängliga celler för skeppsplacering genom att filtrera och verifiera cellisolering.
+    // 3: LINQ förenklar logiken, vilket gör koden lättare att läsa.
     public class ShipPlacementService : IShipPlacement
     {
-        private Random _random = new Random();
-
         public void PlaceShipRandomly(Grid grid, Ship[] ships)
         {
             Random random = new Random();
@@ -19,7 +21,6 @@ namespace Battleship
                 bool placed = false;
                 while (!placed)
                 {
-                    // Get random starting position
                     var availableCells = grid.Where(cell => cell.IsEmpty()).ToList();
                     if (availableCells.Count == 0) break;
 
@@ -28,10 +29,8 @@ namespace Battleship
                 }
             }
         }
-
-        private bool TryPlaceShip(Grid grid, Cell startCell, Ship ship, bool horizontal)
+        private bool TryPlaceShip(Grid grid, Cell startCell, Ship ship, bool horizontal) //LINQ-kravet
         {
-            // Identify potential ship cells based on the starting cell and orientation
             var shipCells = horizontal
                 ? grid.Where(c => c.Row == startCell.Row &&
                                 c.Column >= startCell.Column &&
@@ -40,11 +39,9 @@ namespace Battleship
                                 c.Row >= startCell.Row &&
                                 c.Row < startCell.Row + ship.Length);
 
-            // Check if the selected cells are enough and if all are empty and isolated
             if (shipCells.Count() != ship.Length || shipCells.Any(c => !c.IsEmpty() || !IsCellIsolated(grid, c.Row, c.Column)))
                 return false;
 
-            // Place the ship if all checks passed
             foreach (var cell in shipCells)
             {
                 cell.Ship = ship;
@@ -54,14 +51,12 @@ namespace Battleship
 
         private bool IsCellIsolated(Grid grid, int row, int col)
         {
-            // Use LINQ to find the neighbors by checking row and column offsets
             var neighbors = grid.Where(cell =>
-                (cell.Row == row - 1 && cell.Column == col) ||    // Up
-                (cell.Row == row + 1 && cell.Column == col) ||    // Down
-                (cell.Row == row && cell.Column == col - 1) ||    // Left
-                (cell.Row == row && cell.Column == col + 1));     // Right
+                (cell.Row == row - 1 && cell.Column == col) ||
+                (cell.Row == row + 1 && cell.Column == col) ||
+                (cell.Row == row && cell.Column == col - 1) ||
+                (cell.Row == row && cell.Column == col + 1));
 
-            // Check if any neighbor cell is occupied
             return neighbors.All(cell => cell.IsEmpty());
         }
 

@@ -6,6 +6,10 @@ using System.Threading.Tasks;
 
 namespace Battleship
 {
+    // KRAV #1:
+    // 1: Generics
+    // 2: ActionNavigator<T> tillåter navigering för vilken menytyp som helst, som IShootingStrategy eller IPlayerAction.
+    // 3: Genom att använda generics kan ActionNavigator återanvändas för olika menytyper i spelet.
     public class ActionNavigator<T>
     {
         private readonly SimpleMenu<T> _menu;

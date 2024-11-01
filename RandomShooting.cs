@@ -17,13 +17,10 @@ namespace Battleship
 
         public void Shoot(Player player)
         {
-            // Get the opponent's grid
-            Grid opponentGrid = player.OpponentGrid; // Assuming Player has an Opponent reference and Grid
+            Grid opponentGrid = player.OpponentGrid;
 
-            // Find a valid cell to shoot at
             Cell targetCell = IsValidShoot(opponentGrid);
 
-            // Use Attack class to perform the shooting action
             Attack attack = new Attack(opponentGrid);
             attack.Execute(player, targetCell);
         }
