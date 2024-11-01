@@ -47,8 +47,7 @@ namespace Battleship
                 Console.Write($"Row (0-{Grid.GridSize - 1}): ");
                 if (!int.TryParse(Console.ReadLine(), out int row) || row < 0 || row >= Grid.GridSize)
                 {
-                    Console.WriteLine("Invalid row number. Please enter a number between " +
-                                    $"0 and {Grid.GridSize - 1}.");
+                    Console.WriteLine("Invalid row number. Please enter a number between " + $"0 and {Grid.GridSize - 1}.");
                     continue;
                 }
 
@@ -56,8 +55,7 @@ namespace Battleship
                 Console.Write($"Column (0-{Grid.GridSize - 1}): ");
                 if (!int.TryParse(Console.ReadLine(), out int col) || col < 0 || col >= Grid.GridSize)
                 {
-                    Console.WriteLine("Invalid column number. Please enter a number between " +
-                                    $"0 and {Grid.GridSize - 1}.");
+                    Console.WriteLine("Invalid column number. Please enter a number between " + $"0 and {Grid.GridSize - 1}.");
                     continue;
                 }
 

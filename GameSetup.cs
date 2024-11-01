@@ -17,18 +17,26 @@ namespace Battleship
             _shipPlacementService = new ShipPlacementService();
             _display = display;
         }
-        private string GetPlayerName()
+
+        private void DisplayWelcome()
         {
-            Console.WriteLine("Welcome to Battleship!");
-            Console.Write("Enter your name: ");
+            TextPresentation.WriteCenteredTextWithDelay("Welcome to Battleship!");
+            Console.ReadLine();
+            Console.Clear();
+        }
+
+        public string GetPlayerName()
+        {
+            TextPresentation.WriteCenteredTextWithDelay("Enter your name:", 50, leaveCursorBelow: true);
             string name = Console.ReadLine()?.Trim() ?? "Player";
             Console.Clear();
+
             return string.IsNullOrEmpty(name) ? "Player" : name;
         }
 
         private IShootingStrategy SelectComputerStrategy()
         {
-            _display.ShowMessage("Select the computer's strategy:");
+            TextPresentation.WriteCenteredTextWithDelay("Select the computer's strategy:");
             var strategies = new List<MenuItem<IShootingStrategy>>
         {
             new MenuItem<IShootingStrategy>("Random Strategy", new RandomShooting()),
@@ -41,9 +49,9 @@ namespace Battleship
             return navigator.Navigate();
         }
 
-
         public void Run()
         {
+            DisplayWelcome();
             string playerName = GetPlayerName();
             IShootingStrategy computerStrategy = SelectComputerStrategy();
 
@@ -67,6 +75,8 @@ namespace Battleship
         private void RunGameLoop(GameController gameController)
         {
             bool gameOver = false;
+            Player lastPlayer = null; //To be able to use the name in the Game Over announcement
+
             while (!gameOver)
             {
                 Player currentPlayer = gameController.GetCurrentPlayer();
@@ -80,15 +90,20 @@ namespace Battleship
                 else if (currentPlayer is Computer)
                 {
                     HandleComputerTurn(currentPlayer);
-                    System.Threading.Thread.Sleep(1000); // Brief pause for transition
+                    System.Threading.Thread.Sleep(1500); // Brief pause for transition
                 }
 
-                gameOver = gameController.CheckGameOver(); 
+                gameOver = gameController.CheckGameOver();
+                lastPlayer = currentPlayer; //To be able to use the name in the Game Over announcement
                 gameController.SwitchPlayer();
             }
 
-            Console.WriteLine("Game Over!");
+            Console.Clear();
+            TextPresentation.WriteCenteredTextWithDelay("Game Over!", yPos: (Console.WindowHeight / 2) - 1); 
+            TextPresentation.WriteCenteredTextWithDelay($"{lastPlayer.Name} is the winner!", yPos: (Console.WindowHeight / 2) + 1);
+            Console.ReadLine();
         }
+
         private void DisplayGameState(Player player, GameController gameController)
         {
             Console.WriteLine($"{player.Name}'s Grid:".PadRight(25) + $"{gameController.GetOpponent().Name}'s Grid:");
@@ -174,7 +189,6 @@ namespace Battleship
                             }
                             else
                             {
-                                //Console.SetCursorPosition(0, menu.menuTop + menu._menuItems.Count + 1);
                                 Console.WriteLine("No damaged ships to repair. Please choose another action.");
                             }
                         }
@@ -218,7 +232,7 @@ namespace Battleship
                 }
                 else
                 {
-                    Console.WriteLine($"{computerPlayer.Name} attempted to repair but had no repair action available.");
+                    Console.WriteLine($"{computerPlayer.Name} attempted to repair but had no repair action available."); //Detta borde inte kunna hända va med tanke på att vi kollar om det finns några reparerbara skäpp innan.
                 }
             }
             else

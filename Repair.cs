@@ -28,26 +28,21 @@ namespace Battleship
             return false;
         }
 
-
-
-
         public void Execute(Player player, Cell targetCell)
         {
             if (targetCell != null && targetCell.IsHit)
             {
                 targetCell.IsHit = false;  // Reset the hit status to indicate repair
+                targetCell.WasRepaired = true;
 
-                // Find the ship that includes this cell and decrement its HitTaken
-                foreach (var ship in player.Ships)
+                // Locate the ship associated with this cell and adjust its HitTaken count
+                Ship associatedShip = targetCell.Ship;
+                if (associatedShip != null && associatedShip.HitTaken > 0)
                 {
-                    if (ship.PlacedOnCell.Contains(targetCell))
-                    {
-                        ship.HitTaken--;  // Decrement HitTaken for the specific ship
-                        targetCell.WasRepaired = true; //Mark as repaired
-                        break;  // Stop after finding the correct ship
-                    }
+                    associatedShip.HitTaken--; // Decrement HitTaken to account for the repair
                 }
             }
         }
+
     }
 }
