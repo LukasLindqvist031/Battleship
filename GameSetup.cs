@@ -11,6 +11,7 @@ namespace Battleship
     {
         private readonly ShipPlacementService _shipPlacementService;
         private readonly IDisplay _display;
+        private GameController _gameController;
 
         public GameSetup(IDisplay display)
         {
@@ -36,14 +37,17 @@ namespace Battleship
 
         private IShootingStrategy SelectComputerStrategy()
         {
-            TextPresentation.WriteCenteredTextWithDelay("Select the computer's strategy:");
-            var strategies = new List<MenuItem<IShootingStrategy>>
-        {
-            new("Random Strategy", new RandomShooting()),
-            new("Intelligent Strategy", new IntelligentShooting())
-        };
+            var centerY = Console.WindowHeight / 2;
+            TextPresentation.WriteCenteredTextWithDelay("Select the computer's strategy:", 50, yPos: centerY);
 
-            var strategyMenu = new SimpleMenu<IShootingStrategy>(strategies);
+            var strategies = new List<MenuItem<IShootingStrategy>>
+            {
+                new("Random Strategy", new RandomShooting()),
+                new("Intelligent Strategy", new IntelligentShooting())
+            };
+
+            // Position the menu directly below the text
+            var strategyMenu = new SimpleMenu<IShootingStrategy>(strategies, specificY: centerY + 1);
             var navigator = new ActionNavigator<IShootingStrategy>(strategyMenu);
 
             return navigator.Navigate();
@@ -106,24 +110,25 @@ namespace Battleship
 
         private void DisplayGameState(Player player, GameController gameController)
         {
-            Console.WriteLine($"{player.Name}'s Grid:".PadRight(25) + $"{gameController.GetOpponent().Name}'s Grid:");
+            //Console.WriteLine($"{player.Name}'s Grid:".PadRight(25) + $"{gameController.GetOpponent().Name}'s Grid:");
             _display.DrawGrid(player.PlayerGrid, player.OpponentGrid, hideShips: true);
         }
-
 
         private void HandleHumanTurn(Player currentPlayer)
         {
             var menuItem = new List<MenuItem<IPlayerAction>>
-            {
-                new("Attack", currentPlayer.Actions[0]),
-                new("Repair", currentPlayer.Actions[1])
-            };
+        {
+            new("Attack", currentPlayer.Actions[0]),
+            new("Repair", currentPlayer.Actions[1])
+        };
 
-            var menu = new SimpleMenu<IPlayerAction>(menuItem);
+            var menu = new SimpleMenu<IPlayerAction>(menuItem, belowGrid: true);
             bool validAction = false;
 
             while (!validAction)
             {
+                Console.Clear();
+                DisplayGameState(currentPlayer, _gameController);
                 menu.Draw();
 
                 var key = Console.ReadKey(true);
@@ -144,8 +149,6 @@ namespace Battleship
                             currentPlayer.ShootingStrategy.Shoot(currentPlayer);
                             validAction = true;
                         }
-
-
                         else if (action is Repair repair)
                         {
                             if (repair.AttemptRepair(currentPlayer))
@@ -155,6 +158,7 @@ namespace Battleship
 
                                 while (!validCell)
                                 {
+                                    Console.SetCursorPosition(0, Console.WindowHeight / 2 + 9);
                                     Console.WriteLine("Enter coordinates of the cell to repair:");
 
                                     Console.Write("Row (0-" + (Grid.GridSize - 1) + "): ");
@@ -193,6 +197,8 @@ namespace Battleship
                 }
             }
         }
+
+
 
         private void HandleComputerTurn(Player computerPlayer)
         {

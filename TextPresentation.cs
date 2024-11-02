@@ -18,7 +18,6 @@ namespace Battleship
             int yPosition = yPos ?? consoleHeight / 2;
 
             Console.CursorVisible = false;
-
             Console.SetCursorPosition(xPos, yPosition);
 
             foreach (char c in text)
@@ -31,10 +30,28 @@ namespace Battleship
             {
                 Console.SetCursorPosition(xPos, yPosition + 1);
             }
-            else
-            {
-                Console.WriteLine();
-            }
+        }
+
+        public static void WriteCenteredText(string text, int? yPos = null)
+        {
+            int consoleWidth = Console.WindowWidth;
+            int consoleHeight = Console.WindowHeight;
+
+            int xPos = (consoleWidth - text.Length) / 2;
+            int yPosition = yPos ?? consoleHeight / 2;
+
+            Console.SetCursorPosition(xPos, yPosition);
+            Console.Write(text);
+        }
+
+        public static int GetCenterX(int contentWidth)
+        {
+            return (Console.WindowWidth - contentWidth) / 2;
+        }
+
+        public static int GetCenterY(int contentHeight)
+        {
+            return (Console.WindowHeight - contentHeight) / 2;
         }
     }
 

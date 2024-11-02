@@ -36,8 +36,10 @@ namespace Battleship
 
         private Cell GetValidTargetFromUser(Grid opponentGrid)
         {
+
             while (true)
             {
+
                 Console.WriteLine("\nEnter target coordinates:");
 
                 Console.Write($"Row (0-{Grid.GridSize - 1}): ");

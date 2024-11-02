@@ -9,6 +9,10 @@ using System.Threading.Tasks;
 
 namespace Battleship
 {
+    // KRAV #1:
+    // 1: Generics
+    // 2: ActionNavigator<T> tillåter navigering för vilken menytyp som helst, som IShootingStrategy eller IPlayerAction.
+    // 3: Genom att använda generics kan ActionNavigator återanvändas för olika menytyper i spelet.
     public class ActionNavigator<T>
     {
         private readonly SimpleMenu<T> _menu;
@@ -60,8 +64,8 @@ namespace Battleship
     {
         public string Name { get; } = "Attack";
 
-        private Grid _opponentGrid;//Används aldrig?
-        private Cell _targetCell; //Används aldrig?
+        private Grid _opponentGrid;
+        //private Cell _targetCell; //Används aldrig?
 
         public Attack(Grid opponentGrid)
         {
@@ -70,12 +74,6 @@ namespace Battleship
 
         public void Execute(Player player, Cell targetCell)
         {
-            if (targetCell == null)
-            {
-                Console.WriteLine("Invalid target cell.");
-                return;
-            }
-
             targetCell.IsHit = true;
 
             if (!targetCell.IsEmpty())
@@ -217,7 +215,7 @@ namespace Battleship
         private readonly Player _computerPlayer;
         private readonly IDisplay _display;
         private Player _currentPlayer;
-        private bool _isGameOver;
+        private bool _isGameOver = false;
 
         public GameController(Player humanPlayer, Player computerPlayer, IDisplay display)
         {
@@ -225,7 +223,6 @@ namespace Battleship
             _computerPlayer = computerPlayer;
             _display = display;
             _currentPlayer = humanPlayer;
-            _isGameOver = false;
         }
 
         public Player GetCurrentPlayer()
@@ -273,19 +270,31 @@ namespace Battleship
 {
     public class GameDisplay : IDisplay
     {
-        public GameDisplay() { }
-
-        public void ShowMessage(string message)
-        {
-            Console.WriteLine(message);
-        }
-
         public void DrawGrid(Grid playerGrid, Grid opponentGrid, bool hideShips)
         {
-            Console.WriteLine("  0 1 2 3 4 5 6 7 8 9   ".PadRight(25) + "  0 1 2 3 4 5 6 7 8 9");
+            int gridWidth = 23; // Width of one grid (10 columns * 2 chars + borders)
+            int totalWidth = gridWidth * 2 + 5; // Two grids plus spacing
+            int gridHeight = Grid.GridSize + 1; // Grid size plus header
+
+            // Calculate starting positions
+            int startY = TextPresentation.GetCenterY(gridHeight);
+            int startX = TextPresentation.GetCenterX(totalWidth);
+
+            // Draw header
+            TextPresentation.WriteCenteredText("Your Grid".PadRight(25) + "Opponent's Grid", startY - 2);
+
+            // Draw column numbers
+            string colNumbers = "  0 1 2 3 4 5 6 7 8 9";
+            Console.SetCursorPosition(startX, startY);
+            Console.Write(colNumbers.PadRight(25));
+            Console.Write(colNumbers);
+
+            // Draw grids
             for (int row = 0; row < Grid.GridSize; row++)
             {
-                // Display player grid row
+                Console.SetCursorPosition(startX, startY + row + 1);
+
+                // Player grid
                 Console.Write($"{row} ");
                 for (int col = 0; col < Grid.GridSize; col++)
                 {
@@ -293,28 +302,25 @@ namespace Battleship
                     Console.Write($"{playerSymbol} ");
                 }
 
-                // Spacer between grids
                 Console.Write("   ");
 
-                // Display opponent grid row
+                // Opponent grid
                 Console.Write($"{row} ");
                 for (int col = 0; col < Grid.GridSize; col++)
                 {
                     char opponentSymbol = GetCellSymbol(opponentGrid.Grids[row, col], hideShips);
                     Console.Write($"{opponentSymbol} ");
                 }
-
-                Console.WriteLine();
             }
         }
 
         private char GetCellSymbol(Cell cell, bool hideShips)
         {
-            if (cell.IsHit && cell.HasShip()) return 'X'; // Hit ship
-            if (cell.IsHit && cell.IsEmpty()) return 'M'; // Missed shot
-            if (!cell.IsHit && cell.HasShip() && !hideShips) return 'O'; // Repaired ship part, visible to owner
-            if (!cell.IsHit && cell.IsEmpty()) return '~'; // Water for empty, unhit cells
-            return '~'; // Default to water for any remaining cases
+            if (cell.IsHit && cell.HasShip()) return 'X';
+            if (cell.IsHit && cell.IsEmpty()) return 'M';
+            if (!cell.IsHit && cell.HasShip() && !hideShips) return 'O';
+            if (!cell.IsHit && cell.IsEmpty()) return '~';
+            return '~';
         }
     }
 }
@@ -335,39 +341,51 @@ namespace Battleship
     {
         private readonly ShipPlacementService _shipPlacementService;
         private readonly IDisplay _display;
+        private GameController _gameController;
 
         public GameSetup(IDisplay display)
         {
             _shipPlacementService = new ShipPlacementService();
             _display = display;
         }
-        private string GetPlayerName()
+
+        private void DisplayWelcome()
         {
-            Console.WriteLine("Welcome to Battleship!");
-            Console.Write("Enter your name: ");
+            TextPresentation.WriteCenteredTextWithDelay("Welcome to Battleship!");
+            Console.ReadLine();
+            Console.Clear();
+        }
+
+        public string GetPlayerName()
+        {
+            TextPresentation.WriteCenteredTextWithDelay("Enter your name:", 50, leaveCursorBelow: true);
             string name = Console.ReadLine()?.Trim() ?? "Player";
             Console.Clear();
+
             return string.IsNullOrEmpty(name) ? "Player" : name;
         }
 
         private IShootingStrategy SelectComputerStrategy()
         {
-            var strategies = new List<MenuItem<IShootingStrategy>>
-        {
-            new MenuItem<IShootingStrategy>("Random Strategy", new RandomShooting()),
-            new MenuItem<IShootingStrategy>("Intelligent Strategy", new IntelligentShooting())
-        };
+            var centerY = Console.WindowHeight / 2;
+            TextPresentation.WriteCenteredTextWithDelay("Select the computer's strategy:", 50, yPos: centerY);
 
-            var strategyMenu = new SimpleMenu<IShootingStrategy>(strategies);
+            var strategies = new List<MenuItem<IShootingStrategy>>
+            {
+                new("Random Strategy", new RandomShooting()),
+                new("Intelligent Strategy", new IntelligentShooting())
+            };
+
+            // Position the menu directly below the text
+            var strategyMenu = new SimpleMenu<IShootingStrategy>(strategies, specificY: centerY + 1);
             var navigator = new ActionNavigator<IShootingStrategy>(strategyMenu);
 
-            _display.ShowMessage("Select the computer's strategy:");
             return navigator.Navigate();
         }
 
-
         public void Run()
         {
+            DisplayWelcome();
             string playerName = GetPlayerName();
             IShootingStrategy computerStrategy = SelectComputerStrategy();
 
@@ -381,7 +399,7 @@ namespace Battleship
             _shipPlacementService.PlaceShipRandomly(playerGrid, ships);
             _shipPlacementService.PlaceShipRandomly(computerGrid, ships.Select(s => s.Clone()).ToArray());
 
-            var human = new Human(playerName, playerGrid, computerGrid, ships.ToList(), playerActions, new RandomShooting());
+            var human = new Human(playerName, playerGrid, computerGrid, ships.ToList(), playerActions, new UserShooting());
             var computer = new Computer("Computer", computerGrid, playerGrid, ships.Select(s => s.Clone()).ToList(), computerActions, computerStrategy);
 
             var gameController = new GameController(human, computer, _display);
@@ -391,6 +409,8 @@ namespace Battleship
         private void RunGameLoop(GameController gameController)
         {
             bool gameOver = false;
+            Player lastPlayer = null; //To be able to use the name in the Game Over announcement
+
             while (!gameOver)
             {
                 Player currentPlayer = gameController.GetCurrentPlayer();
@@ -404,35 +424,41 @@ namespace Battleship
                 else if (currentPlayer is Computer)
                 {
                     HandleComputerTurn(currentPlayer);
-                    System.Threading.Thread.Sleep(1000); // Brief pause for transition
+                    System.Threading.Thread.Sleep(1500); // Brief pause for transition
                 }
 
-                gameOver = gameController.CheckGameOver(); 
+                gameOver = gameController.CheckGameOver();
+                lastPlayer = currentPlayer; //To be able to use the name in the Game Over announcement
                 gameController.SwitchPlayer();
             }
 
-            Console.WriteLine("Game Over!");
-        }
-        private void DisplayGameState(Player player, GameController gameController)
-        {
-            Console.WriteLine($"{player.Name}'s Grid:".PadRight(25) + $"{gameController.GetOpponent().Name}'s Grid:");
-            _display.DrawGrid(player.PlayerGrid, player.OpponentGrid, hideShips: true);
+            Console.Clear();
+            TextPresentation.WriteCenteredTextWithDelay("Game Over!", yPos: (Console.WindowHeight / 2) - 1); 
+            TextPresentation.WriteCenteredTextWithDelay($"{lastPlayer.Name} is the winner!", yPos: (Console.WindowHeight / 2) + 1);
+            Console.ReadLine();
         }
 
+        private void DisplayGameState(Player player, GameController gameController)
+        {
+            //Console.WriteLine($"{player.Name}'s Grid:".PadRight(25) + $"{gameController.GetOpponent().Name}'s Grid:");
+            _display.DrawGrid(player.PlayerGrid, player.OpponentGrid, hideShips: true);
+        }
 
         private void HandleHumanTurn(Player currentPlayer)
         {
             var menuItem = new List<MenuItem<IPlayerAction>>
-            {
-                new MenuItem<IPlayerAction>("Attack", currentPlayer.Actions[0]),
-                new MenuItem<IPlayerAction>("Repair", currentPlayer.Actions[1])
-            };
+        {
+            new("Attack", currentPlayer.Actions[0]),
+            new("Repair", currentPlayer.Actions[1])
+        };
 
-            var menu = new SimpleMenu<IPlayerAction>(menuItem);
+            var menu = new SimpleMenu<IPlayerAction>(menuItem, belowGrid: true);
             bool validAction = false;
 
             while (!validAction)
             {
+                Console.Clear();
+                DisplayGameState(currentPlayer, _gameController);
                 menu.Draw();
 
                 var key = Console.ReadKey(true);
@@ -450,51 +476,9 @@ namespace Battleship
 
                         if (action is Attack attack)
                         {
-                            int messageRow = Console.WindowHeight - 2;
-                            Console.SetCursorPosition(0, messageRow);
-                            Console.Write(new string(' ', Console.WindowWidth));
-
-                            Cell targetCell = null;
-                            bool validInput = false;
-                            do
-                            {
-                                //Console.SetCursorPosition(0, messageRow);
-                                Console.WriteLine("Enter target coordinates:");
-
-                                Console.Write("Row (0-" + (Grid.GridSize - 1) + "): ");
-                                int row = int.TryParse(Console.ReadLine(), out var tempRow) ? tempRow : -1; //Better handling of invalid inputs
-
-                                Console.Write("Column (0-" + (Grid.GridSize - 1) + "): ");
-                                int col = int.TryParse(Console.ReadLine(), out var tempCol) ? tempCol : -1; //Better handling of invalid inputs
-
-                                if (row >= 0 && row < Grid.GridSize && col >= 0 && col < Grid.GridSize)
-                                {
-                                    targetCell = currentPlayer.OpponentGrid.Grids[row, col];
-                                    if (!targetCell.IsHit)
-                                    {
-                                        validInput = true;
-                                    }
-                                    else
-                                    {
-                                        Console.WriteLine("This cell has already been hit. Please enter new coordinates.");
-                                        Console.SetCursorPosition(0, messageRow + 1);
-                                        Console.Write(new string(' ', Console.WindowWidth));
-                                    }
-                                }
-                                else
-                                {
-                                    Console.WriteLine("Invalid coordinates. Please enter values within the grid range.");
-                                    Console.SetCursorPosition(0, messageRow + 1);
-                                    Console.Write(new string(' ', Console.WindowWidth));
-                                }
-
-                            } while (!validInput);
-
-                            attack.Execute(currentPlayer, targetCell);
+                            currentPlayer.ShootingStrategy.Shoot(currentPlayer);
                             validAction = true;
                         }
-
-
                         else if (action is Repair repair)
                         {
                             if (repair.AttemptRepair(currentPlayer))
@@ -504,7 +488,7 @@ namespace Battleship
 
                                 while (!validCell)
                                 {
-                                    // Prompt for coordinates
+                                    Console.SetCursorPosition(0, Console.WindowHeight / 2 + 9);
                                     Console.WriteLine("Enter coordinates of the cell to repair:");
 
                                     Console.Write("Row (0-" + (Grid.GridSize - 1) + "): ");
@@ -513,12 +497,10 @@ namespace Battleship
                                     Console.Write("Column (0-" + (Grid.GridSize - 1) + "): ");
                                     int col = int.Parse(Console.ReadLine() ?? "0");
 
-                                    // Ensure the coordinates are within grid bounds (0-based index)
                                     if (row >= 0 && row < Grid.GridSize && col >= 0 && col < Grid.GridSize)
                                     {
                                         targetCell = currentPlayer.PlayerGrid.Grids[row, col];
 
-                                        // Check if the selected cell is part of a damaged ship
                                         if (targetCell.IsHit)
                                         {
                                             repair.Execute(currentPlayer, targetCell);
@@ -538,7 +520,6 @@ namespace Battleship
                             }
                             else
                             {
-                                Console.SetCursorPosition(0, menu.menuTop + menu._menuItems.Count + 1);
                                 Console.WriteLine("No damaged ships to repair. Please choose another action.");
                             }
                         }
@@ -547,17 +528,17 @@ namespace Battleship
             }
         }
 
+
+
         private void HandleComputerTurn(Player computerPlayer)
         {
-            Random random = new Random();
+            var random = new Random();
 
-            // Check if there are any damaged cells in non-sunk ships
             var damagedCells = computerPlayer.PlayerGrid.Grids
                 .Cast<Cell>()
                 .Where(cell => cell.IsHit && cell.Ship != null && !cell.Ship.IsSunk())
                 .ToList();
 
-            // If no damaged cells are found, the computer should attack
             if (!damagedCells.Any())
             {
                 computerPlayer.ShootingStrategy?.Shoot(computerPlayer);
@@ -565,31 +546,24 @@ namespace Battleship
                 return;
             }
 
-            // 30% chance to repair if there are damaged cells
             bool shouldRepair = random.Next(1, 101) <= 30;
 
             if (shouldRepair)
             {
-                // Find the Repair action within the computer's actions
                 var repairAction = computerPlayer.Actions.OfType<Repair>().FirstOrDefault();
 
                 if (repairAction != null)
                 {
-                    // Select a random damaged cell from a non-sunk ship
                     Cell targetCell = damagedCells[random.Next(damagedCells.Count)];
                     repairAction.Execute(computerPlayer, targetCell);
-                    Console.WriteLine($"{computerPlayer.Name} chose to repair a damaged cell at ({targetCell.Row}, {targetCell.Column}).");
+                    Console.WriteLine(
+                        $"{computerPlayer.Name} chose to repair a damaged cell at ({targetCell.Row}, {targetCell.Column}).");
                 }
                 else
                 {
-                    Console.WriteLine($"{computerPlayer.Name} attempted to repair but had no repair action available.");
+                    computerPlayer.ShootingStrategy?.Shoot(computerPlayer);
+                    Console.WriteLine($"{computerPlayer.Name} has completed its turn by shooting.");
                 }
-            }
-            else
-            {
-                // If repair is not chosen, proceed with shooting
-                computerPlayer.ShootingStrategy?.Shoot(computerPlayer);
-                Console.WriteLine($"{computerPlayer.Name} has completed its turn by shooting.");
             }
         }
     }
@@ -604,6 +578,10 @@ using System.Collections.Generic;
 
 namespace Battleship
 {
+    // KRAV #4:
+    // 1: Iterator Pattern
+    // 2: Den anpassade GridEnumerator itererar över alla celler.
+    // 3: Detta gör Grid-strukturen kompatibel med LINQ och möjliggör flexibla speloperationer.
     public class Grid : IEnumerable<Cell>
     {
         public const int GridSize = 10;
@@ -620,20 +598,14 @@ namespace Battleship
                 }
             }
         }
-
-        // Implement IEnumerable<Cell>
         public IEnumerator<Cell> GetEnumerator()
         {
             return new GridEnumerator(this);
         }
-
-        // Implement non-generic IEnumerable
         IEnumerator IEnumerable.GetEnumerator()
         {
             return GetEnumerator();
         }
-
-        // Custom enumerator class
         private class GridEnumerator : IEnumerator<Cell>
         {
             private readonly Grid _grid;
@@ -645,7 +617,7 @@ namespace Battleship
             {
                 _grid = grid;
                 _currentRow = 0;
-                _currentCol = -1; // Start before first element
+                _currentCol = -1;
                 _start = true;
             }
 
@@ -679,14 +651,12 @@ namespace Battleship
 
                 return _currentRow < GridSize;
             }
-
             public void Reset()
             {
                 _currentRow = 0;
                 _currentCol = -1;
                 _start = true;
             }
-
             public void Dispose()
             {
             }
@@ -722,22 +692,6 @@ namespace Battleship
 }
 
 ================
-File: HumanCreater.cs
-================
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Battleship
-{
-    internal class HumanCreater
-    {
-    }
-}
-
-================
 File: IDisplay.cs
 ================
 using System;
@@ -751,7 +705,6 @@ namespace Battleship
     public interface IDisplay
     {
         void DrawGrid(Grid playerGrid, Grid opponentGrid, bool hideShips);
-        void ShowMessage(string message);
     }
 }
 
@@ -789,8 +742,8 @@ namespace Battleship
     public class IntelligentShooting : IShootingStrategy
     {
         private readonly Random _random;
-        private List<Cell> _hitCells;  // Lista över träffade celler
-        private Queue<Cell> _possibleTargets;  // Möjliga målceller runt ett träffat skepp
+        private List<Cell> _hitCells;
+        private readonly Queue<Cell> _possibleTargets;
 
         public IntelligentShooting()
         {
@@ -798,44 +751,35 @@ namespace Battleship
             _hitCells = new List<Cell>();
             _possibleTargets = new Queue<Cell>();
         }
-
         public void Shoot(Player player)
         {
-            // Hämta motståndarens grid
             Grid opponentGrid = player.OpponentGrid;
 
-            // Om vi har målceller att skjuta på (närliggande celler), välj från den kön
             if (_possibleTargets.Count > 0)
             {
-                Cell targetCell = _possibleTargets.Dequeue(); // Hämta nästa cell från kön (Dequeue removes and returns the object at the beginning of the Queue<Cell>).
+                Cell targetCell = _possibleTargets.Dequeue();
 
-                // Om cellen redan har blivit träffad, välj en ny cell
                 if (targetCell.IsHit)
                 {
-                    Shoot(player); // Skjut igen
+                    Shoot(player);
                     return;
                 }
-
                 ExecuteAttack(player, targetCell);
             }
             else
             {
-                // Annars, välj en slumpmässig cell om det inte finns några närliggande mål
                 Cell targetCell = IsValidShoot(opponentGrid);
                 ExecuteAttack(player, targetCell);
             }
         }
-
         private void ExecuteAttack(Player player, Cell targetCell)
         {
             Attack attack = new Attack(player.OpponentGrid);
             attack.Execute(player, targetCell);
 
-            if (!targetCell.IsEmpty() && targetCell.IsHit)  // Om träff på skepp
+            if (!targetCell.IsEmpty() && targetCell.IsHit)
             {
-                _hitCells.Add(targetCell);  // Lägg till i listan med träffar
-
-                // Lägg till möjliga målceller (upp, ner, vänster, höger)
+                _hitCells.Add(targetCell);
                 AddAdjacentCellsToTargets(player.OpponentGrid, targetCell);
             }
         }
@@ -845,21 +789,18 @@ namespace Battleship
             int row = cell.Row;
             int col = cell.Column;
 
-            // Lägg till de 4 närliggande cellerna om de är giltiga skottmål
-            if (row > 0 && !opponentGrid.Grids[row - 1, col].IsHit) // Upp
-                _possibleTargets.Enqueue(opponentGrid.Grids[row - 1, col]); //(Enqueue adds an object to the end of the Queue<Cell>).
+            if (row > 0 && !opponentGrid.Grids[row - 1, col].IsHit)
+                _possibleTargets.Enqueue(opponentGrid.Grids[row - 1, col]);
 
-            if (row < Grid.GridSize - 1 && !opponentGrid.Grids[row + 1, col].IsHit) // Ner
+            if (row < Grid.GridSize - 1 && !opponentGrid.Grids[row + 1, col].IsHit)
                 _possibleTargets.Enqueue(opponentGrid.Grids[row + 1, col]);
 
-            if (col > 0 && !opponentGrid.Grids[row, col - 1].IsHit) // Vänster
+            if (col > 0 && !opponentGrid.Grids[row, col - 1].IsHit)
                 _possibleTargets.Enqueue(opponentGrid.Grids[row, col - 1]);
 
-            if (col < Grid.GridSize - 1 && !opponentGrid.Grids[row, col + 1].IsHit) // Höger
+            if (col < Grid.GridSize - 1 && !opponentGrid.Grids[row, col + 1].IsHit)
                 _possibleTargets.Enqueue(opponentGrid.Grids[row, col + 1]);
         }
-
-        // Denna metod returnerar en slumpmässig valid cell (samma som RandomShooting, kan man typ göra en egen class eller nått med denna så man slipper upprepa den?).
         private Cell IsValidShoot(Grid opponentGrid)
         {
             Cell targetCell;
@@ -924,6 +865,10 @@ using System.Threading.Tasks;
 
 namespace Battleship
 {
+    // KRAV #2:
+    // 1: Strategy pattern
+    // 2: Implementeringar av IShootingStrategy låter datorn använda olika strategier som väljs under körning.
+    // 3: Detta ger flexibilitet, då olika spelstilar kan användas genom att ändra strategi utan att behöva ändra datorns logik.
     public interface IShootingStrategy
     {
         void Shoot(Player player);
@@ -967,6 +912,10 @@ using System.Threading.Tasks;
 
 namespace Battleship
 {
+    // KRAV #3:
+    // 1: Bridge Pattern
+    // 2: Player-abstraktionen samarbetar med IShootingStrategy-abstraktionen, och spelet sätter ihop dessa typer för att skapa olika spelarbeteenden.
+    // 3: Bridge Pattern separerar hierarkierna Player och ShootingStrategy, vilket främjar modularitet och olika strategier.
     public abstract class Player 
     {
         public string Name { get; }
@@ -1003,22 +952,6 @@ namespace Battleship
         {
             return !PlayerGrid.Any(cell => cell.HasShip() && !cell.IsHit);
         }
-        /*public void PerformAction(int actionIndex)
-        {
-            if (actionIndex >= 0 && actionIndex < Actions.Count)
-            {
-                Actions[actionIndex].Execute(this); // Execute the chosen action
-            }
-            else
-            {
-                throw new ArgumentOutOfRangeException("Invalid action index");
-            }
-        }
-
-        public void PerformShooting()
-        {
-            ShootingStrategy.Shoot(this); // Use the injected shooting strategy
-        }*/
     }
 }
 
@@ -1054,13 +987,10 @@ namespace Battleship
 
         public void Shoot(Player player)
         {
-            // Get the opponent's grid
-            Grid opponentGrid = player.OpponentGrid; // Assuming Player has an Opponent reference and Grid
+            Grid opponentGrid = player.OpponentGrid;
 
-            // Find a valid cell to shoot at
             Cell targetCell = IsValidShoot(opponentGrid);
 
-            // Use Attack class to perform the shooting action
             Attack attack = new Attack(opponentGrid);
             attack.Execute(player, targetCell);
         }
@@ -1094,49 +1024,37 @@ using System.Threading.Tasks;
 
 namespace Battleship
 {
-    using System;
-    using System.Linq;
-
     public class Repair : IPlayerAction
     {
         public string Name { get; } = "Repair";
 
         public bool AttemptRepair(Player player)
         {
-            // Check PlayerGrid for any cells with IsHit and an associated Ship
             foreach (var cell in player.PlayerGrid)
             {
                 if (cell.IsHit && cell.HasShip())
                 {
-                    return true;  // A damaged cell exists, so allow repair
+                    return true;
                 }
             }
-
-            // If no damaged cells are found, return false
             return false;
         }
-
-
-
 
         public void Execute(Player player, Cell targetCell)
         {
             if (targetCell != null && targetCell.IsHit)
             {
-                targetCell.IsHit = false;  // Reset the hit status to indicate repair
+                targetCell.IsHit = false;
+                targetCell.WasRepaired = true;
+                Ship associatedShip = targetCell.Ship;
 
-                // Find the ship that includes this cell and decrement its HitTaken
-                foreach (var ship in player.Ships)
+                if (associatedShip != null && associatedShip.HitTaken > 0)
                 {
-                    if (ship.PlacedOnCell.Contains(targetCell))
-                    {
-                        ship.HitTaken--;  // Decrement HitTaken for the specific ship
-                        targetCell.WasRepaired = true; //Mark as repaired
-                        break;  // Stop after finding the correct ship
-                    }
+                    associatedShip.HitTaken--;
                 }
             }
         }
+
     }
 }
 
@@ -1170,11 +1088,6 @@ namespace Battleship
         {
             return HitTaken >= Length;
         }
-
-        public void TakeHit()
-        {
-            HitTaken++;
-        }
         public Ship Clone()
         {
             return new Ship(Length);
@@ -1194,10 +1107,12 @@ using System.Threading.Tasks;
 
 namespace Battleship
 {
+    // KRAV #5:
+    // 1: LINQ
+    // 2: LINQ querys hjälper till att identifiera tillgängliga celler för skeppsplacering genom att filtrera och verifiera cellisolering.
+    // 3: LINQ förenklar logiken, vilket gör koden lättare att läsa.
     public class ShipPlacementService : IShipPlacement
     {
-        private Random _random = new Random();
-
         public void PlaceShipRandomly(Grid grid, Ship[] ships)
         {
             Random random = new Random();
@@ -1206,7 +1121,6 @@ namespace Battleship
                 bool placed = false;
                 while (!placed)
                 {
-                    // Get random starting position
                     var availableCells = grid.Where(cell => cell.IsEmpty()).ToList();
                     if (availableCells.Count == 0) break;
 
@@ -1215,10 +1129,8 @@ namespace Battleship
                 }
             }
         }
-
-        private bool TryPlaceShip(Grid grid, Cell startCell, Ship ship, bool horizontal)
+        private bool TryPlaceShip(Grid grid, Cell startCell, Ship ship, bool horizontal) //LINQ-kravet
         {
-            // Identify potential ship cells based on the starting cell and orientation
             var shipCells = horizontal
                 ? grid.Where(c => c.Row == startCell.Row &&
                                 c.Column >= startCell.Column &&
@@ -1227,11 +1139,9 @@ namespace Battleship
                                 c.Row >= startCell.Row &&
                                 c.Row < startCell.Row + ship.Length);
 
-            // Check if the selected cells are enough and if all are empty and isolated
             if (shipCells.Count() != ship.Length || shipCells.Any(c => !c.IsEmpty() || !IsCellIsolated(grid, c.Row, c.Column)))
                 return false;
 
-            // Place the ship if all checks passed
             foreach (var cell in shipCells)
             {
                 cell.Ship = ship;
@@ -1241,14 +1151,12 @@ namespace Battleship
 
         private bool IsCellIsolated(Grid grid, int row, int col)
         {
-            // Use LINQ to find the neighbors by checking row and column offsets
             var neighbors = grid.Where(cell =>
-                (cell.Row == row - 1 && cell.Column == col) ||    // Up
-                (cell.Row == row + 1 && cell.Column == col) ||    // Down
-                (cell.Row == row && cell.Column == col - 1) ||    // Left
-                (cell.Row == row && cell.Column == col + 1));     // Right
+                (cell.Row == row - 1 && cell.Column == col) ||
+                (cell.Row == row + 1 && cell.Column == col) ||
+                (cell.Row == row && cell.Column == col - 1) ||
+                (cell.Row == row && cell.Column == col + 1));
 
-            // Check if any neighbor cell is occupied
             return neighbors.All(cell => cell.IsEmpty());
         }
 
@@ -1268,67 +1176,228 @@ namespace Battleship
 {
     public class SimpleMenu<T> : IMenu<T>
     {
-        public readonly List<MenuItem<T>> _menuItems;
-        public int _selectedIndex;
-        public readonly int menuTop;
+        private readonly List<MenuItem<T>> MenuItems;
+        private int SelectedIndex;
+        private readonly int MenuTop;
+        private readonly int MenuLeft;
+        private readonly bool BelowGrid;
 
-        public SimpleMenu(List<MenuItem<T>> items)
+        public SimpleMenu(List<MenuItem<T>> items, bool belowGrid = false, int? specificY = null)
         {
-            _menuItems = items;
-            _selectedIndex = 0;
-            menuTop = Console.CursorTop;
+            MenuItems = items;
+            SelectedIndex = 0;
+            BelowGrid = belowGrid;
+
+            // Calculate menu dimensions
+            int menuWidth = items.Max(item => item.Text.Length) + 4; // +4 for arrow and padding
+            int menuHeight = items.Count;
+
+            if (specificY.HasValue)
+            {
+                // Use specific Y position when provided
+                MenuTop = specificY.Value;
+                MenuLeft = TextPresentation.GetCenterX(menuWidth);
+            }
+            else if (belowGrid)
+            {
+                // Position menu below the player's grid (left side)
+                MenuTop = (Console.WindowHeight / 2) + 6;
+                MenuLeft = TextPresentation.GetCenterX(menuWidth * 2) - menuWidth * 2 + 2; // Align with player grid
+            }
+            else
+            {
+                // Original centered positioning
+                MenuTop = TextPresentation.GetCenterY(menuHeight);
+                MenuLeft = TextPresentation.GetCenterX(menuWidth);
+            }
         }
 
         public void Draw()
         {
             Console.CursorVisible = false;
 
-            // Clear only the lines used by the menu
-            for (int i = 0; i < _menuItems.Count; i++)
+            // Clear menu area
+            for (int i = 0; i < MenuItems.Count; i++)
             {
-                Console.SetCursorPosition(0, menuTop + i);
-                Console.Write(new string(' ', Console.WindowWidth));
+                Console.SetCursorPosition(MenuLeft, MenuTop + i);
+                Console.Write(new string(' ', MenuItems[i].Text.Length + 4));
             }
 
-            // Draw menu with arrow for selected item
-            for (int i = 0; i < _menuItems.Count; i++)
+            // Draw menu items
+            for (int i = 0; i < MenuItems.Count; i++)
             {
-                Console.SetCursorPosition(0, menuTop + i);
-                if (i == _selectedIndex)
+                Console.SetCursorPosition(MenuLeft, MenuTop + i);
+                if (i == SelectedIndex)
                 {
-                    Console.WriteLine($"-> {_menuItems[i].Text.PadRight(10)}");
+                    Console.Write($"-> {MenuItems[i].Text}");
                 }
                 else
                 {
-                    Console.WriteLine($"   {_menuItems[i].Text.PadRight(10)}");
+                    Console.Write($"   {MenuItems[i].Text}");
                 }
             }
         }
 
         public void Up()
         {
-            if (_selectedIndex > 0)
+            if (SelectedIndex > 0)
             {
-                _menuItems[_selectedIndex].IsSelected = false;
-                _selectedIndex--;
-                _menuItems[_selectedIndex].IsSelected = true;
+                MenuItems[SelectedIndex].IsSelected = false;
+                SelectedIndex--;
+                MenuItems[SelectedIndex].IsSelected = true;
                 Draw();
             }
         }
 
         public void Down()
         {
-            if (_selectedIndex < _menuItems.Count - 1)
+            if (SelectedIndex < MenuItems.Count - 1)
             {
-                _menuItems[_selectedIndex].IsSelected = false;
-                _selectedIndex++;
-                _menuItems[_selectedIndex].IsSelected = true;
+                MenuItems[SelectedIndex].IsSelected = false;
+                SelectedIndex++;
+                MenuItems[SelectedIndex].IsSelected = true;
                 Draw();
             }
         }
+
         public T GetSelectedItem()
         {
-            return _menuItems[_selectedIndex].Value;
+            return MenuItems[SelectedIndex].Value;
+        }
+    }
+}
+
+================
+File: TextPresentation.cs
+================
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Numerics;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Battleship
+{
+    public static class TextPresentation
+    {
+        public static void WriteCenteredTextWithDelay(string text, int delay = 50, bool leaveCursorBelow = false, int? yPos = null)
+        {
+            int consoleWidth = Console.WindowWidth;
+            int consoleHeight = Console.WindowHeight;
+
+            int xPos = (consoleWidth - text.Length) / 2;
+            int yPosition = yPos ?? consoleHeight / 2;
+
+            Console.CursorVisible = false;
+            Console.SetCursorPosition(xPos, yPosition);
+
+            foreach (char c in text)
+            {
+                Console.Write(c);
+                Thread.Sleep(delay);
+            }
+
+            if (leaveCursorBelow)
+            {
+                Console.SetCursorPosition(xPos, yPosition + 1);
+            }
+        }
+
+        public static void WriteCenteredText(string text, int? yPos = null)
+        {
+            int consoleWidth = Console.WindowWidth;
+            int consoleHeight = Console.WindowHeight;
+
+            int xPos = (consoleWidth - text.Length) / 2;
+            int yPosition = yPos ?? consoleHeight / 2;
+
+            Console.SetCursorPosition(xPos, yPosition);
+            Console.Write(text);
+        }
+
+        public static int GetCenterX(int contentWidth)
+        {
+            return (Console.WindowWidth - contentWidth) / 2;
+        }
+
+        public static int GetCenterY(int contentHeight)
+        {
+            return (Console.WindowHeight - contentHeight) / 2;
+        }
+    }
+
+}
+
+================
+File: UserShooting.cs
+================
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Battleship
+{
+    public class UserShooting : IShootingStrategy
+    {
+        public void Shoot(Player player)
+        {
+            Grid opponentGrid = player.OpponentGrid;
+            Cell targetCell = GetValidTargetFromUser(opponentGrid);
+
+            if (targetCell != null)
+            {
+                Attack attack = new Attack(opponentGrid);
+                attack.Execute(player, targetCell);
+
+                if (targetCell.HasShip())
+                {
+                    Console.WriteLine("Hit! You've struck an enemy ship!");
+                    if (targetCell.Ship.IsSunk())
+                    {
+                        Console.WriteLine($"You've sunk a ship of length {targetCell.Ship.Length}!");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Miss! You hit the water.");
+                }
+                System.Threading.Thread.Sleep(1500);
+            }
+        }
+
+        private Cell GetValidTargetFromUser(Grid opponentGrid)
+        {
+            while (true)
+            {
+                Console.WriteLine("\nEnter target coordinates:");
+
+                Console.Write($"Row (0-{Grid.GridSize - 1}): ");
+                if (!int.TryParse(Console.ReadLine(), out int row) || row < 0 || row >= Grid.GridSize)
+                {
+                    Console.WriteLine("Invalid row number. Please enter a number between " + $"0 and {Grid.GridSize - 1}.");
+                    continue;
+                }
+
+                Console.Write($"Column (0-{Grid.GridSize - 1}): ");
+                if (!int.TryParse(Console.ReadLine(), out int col) || col < 0 || col >= Grid.GridSize)
+                {
+                    Console.WriteLine("Invalid column number. Please enter a number between " + $"0 and {Grid.GridSize - 1}.");
+                    continue;
+                }
+
+                Cell targetCell = opponentGrid.Grids[row, col];
+
+                if (targetCell.IsHit)
+                {
+                    Console.WriteLine("This cell has already been targeted. Please choose another location.");
+                    continue;
+                }
+
+                return targetCell;
+            }
         }
     }
 }
