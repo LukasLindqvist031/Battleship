@@ -18,8 +18,12 @@ namespace Battleship
             int startY = TextPresentation.GetCenterY(gridHeight);
             int startX = TextPresentation.GetCenterX(totalWidth);
 
-            // Draw header
-            TextPresentation.WriteCenteredText("Your Grid".PadRight(25) + "Opponent's Grid", startY - 2);
+            // Get the current player's name from the grid's associated player
+            string playerName = playerGrid.Player?.Name ?? "Player";
+            string opponentName = opponentGrid.Player?.Name ?? "Opponent";
+
+            // Draw header with player names
+            TextPresentation.WriteCenteredText($"{playerName}'s Grid".PadRight(25) + $"{opponentName}'s Grid", startY - 2);
 
             // Draw column numbers
             string colNumbers = "  0 1 2 3 4 5 6 7 8 9";

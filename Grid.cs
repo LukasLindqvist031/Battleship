@@ -4,14 +4,11 @@ using System.Collections.Generic;
 
 namespace Battleship
 {
-    // KRAV #4:
-    // 1: Iterator Pattern
-    // 2: Den anpassade GridEnumerator itererar över alla celler.
-    // 3: Detta gör Grid-strukturen kompatibel med LINQ och möjliggör flexibla speloperationer.
     public class Grid : IEnumerable<Cell>
     {
         public const int GridSize = 10;
         public Cell[,] Grids { get; set; }
+        public Player Player { get; set; }  // Added Player property
 
         public Grid()
         {
@@ -24,14 +21,17 @@ namespace Battleship
                 }
             }
         }
+
         public IEnumerator<Cell> GetEnumerator()
         {
             return new GridEnumerator(this);
         }
+
         IEnumerator IEnumerable.GetEnumerator()
         {
             return GetEnumerator();
         }
+
         private class GridEnumerator : IEnumerator<Cell>
         {
             private readonly Grid _grid;
@@ -77,12 +77,14 @@ namespace Battleship
 
                 return _currentRow < GridSize;
             }
+
             public void Reset()
             {
                 _currentRow = 0;
                 _currentCol = -1;
                 _start = true;
             }
+
             public void Dispose()
             {
             }

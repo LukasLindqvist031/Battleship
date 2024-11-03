@@ -95,48 +95,6 @@ namespace Battleship
 }
 
 ================
-File: Battleship.csproj
-================
-<Project Sdk="Microsoft.NET.Sdk">
-
-  <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <TargetFramework>net8.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
-
-</Project>
-
-================
-File: Battleship.sln
-================
-Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.11.35327.3
-MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Battleship", "Battleship.csproj", "{19741242-26BF-494E-A93F-0B645421CDD1}"
-EndProject
-Global
-	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug|Any CPU = Debug|Any CPU
-		Release|Any CPU = Release|Any CPU
-	EndGlobalSection
-	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{19741242-26BF-494E-A93F-0B645421CDD1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{19741242-26BF-494E-A93F-0B645421CDD1}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{19741242-26BF-494E-A93F-0B645421CDD1}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{19741242-26BF-494E-A93F-0B645421CDD1}.Release|Any CPU.Build.0 = Release|Any CPU
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {52D39088-333C-4BDA-A01B-1E8E1872AA0D}
-	EndGlobalSection
-EndGlobal
-
-================
 File: Cell.cs
 ================
 using System;
@@ -411,6 +369,9 @@ namespace Battleship
             bool gameOver = false;
             Player lastPlayer = null; //To be able to use the name in the Game Over announcement
 
+            Console.Clear();
+            TextPresentation.WriteCenteredTextWithDelay("Deploying fleet...");
+            Thread.Sleep(2000);
             while (!gameOver)
             {
                 Player currentPlayer = gameController.GetCurrentPlayer();
@@ -542,7 +503,7 @@ namespace Battleship
             if (!damagedCells.Any())
             {
                 computerPlayer.ShootingStrategy?.Shoot(computerPlayer);
-                Console.WriteLine($"{computerPlayer.Name} has completed its turn by shooting.");
+                TextPresentation.WriteCenteredText($"{computerPlayer.Name} has completed its turn by shooting.");
                 return;
             }
 
@@ -556,8 +517,7 @@ namespace Battleship
                 {
                     Cell targetCell = damagedCells[random.Next(damagedCells.Count)];
                     repairAction.Execute(computerPlayer, targetCell);
-                    Console.WriteLine(
-                        $"{computerPlayer.Name} chose to repair a damaged cell at ({targetCell.Row}, {targetCell.Column}).");
+                    TextPresentation.WriteCenteredText($"{computerPlayer.Name} chose to repair a damaged cell at ({targetCell.Row}), ({targetCell.Column}).");
                 }
                 else
                 {
@@ -1370,8 +1330,10 @@ namespace Battleship
 
         private Cell GetValidTargetFromUser(Grid opponentGrid)
         {
+
             while (true)
             {
+
                 Console.WriteLine("\nEnter target coordinates:");
 
                 Console.Write($"Row (0-{Grid.GridSize - 1}): ");

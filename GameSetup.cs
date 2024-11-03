@@ -72,6 +72,9 @@ namespace Battleship
             var human = new Human(playerName, playerGrid, computerGrid, ships.ToList(), playerActions, new UserShooting());
             var computer = new Computer("Computer", computerGrid, playerGrid, ships.Select(s => s.Clone()).ToList(), computerActions, computerStrategy);
 
+            // Set the Player property for each grid
+            playerGrid.Player = human;
+
             var gameController = new GameController(human, computer, _display);
             RunGameLoop(gameController);
         }
@@ -81,6 +84,9 @@ namespace Battleship
             bool gameOver = false;
             Player lastPlayer = null; //To be able to use the name in the Game Over announcement
 
+            Console.Clear();
+            TextPresentation.WriteCenteredTextWithDelay("Deploying fleet...");
+            Thread.Sleep(2000);
             while (!gameOver)
             {
                 Player currentPlayer = gameController.GetCurrentPlayer();
@@ -117,18 +123,18 @@ namespace Battleship
         private void HandleHumanTurn(Player currentPlayer)
         {
             var menuItem = new List<MenuItem<IPlayerAction>>
-        {
-            new("Attack", currentPlayer.Actions[0]),
-            new("Repair", currentPlayer.Actions[1])
-        };
+            {
+                new("Attack", currentPlayer.Actions[0]),
+                new("Repair", currentPlayer.Actions[1])
+            };
 
             var menu = new SimpleMenu<IPlayerAction>(menuItem, belowGrid: true);
             bool validAction = false;
 
             while (!validAction)
             {
-                Console.Clear();
-                DisplayGameState(currentPlayer, _gameController);
+                //Console.Clear();
+                //DisplayGameState(currentPlayer, _gameController);
                 menu.Draw();
 
                 var key = Console.ReadKey(true);
@@ -179,26 +185,24 @@ namespace Battleship
                                         }
                                         else
                                         {
-                                            Console.WriteLine("This cell is not damaged. Please choose a damaged cell.");
+                                            TextPresentation.WriteCenteredText("This cell is not damaged. Please choose a damaged cell.", Console.WindowHeight / 2 + 9);
                                         }
                                     }
                                     else
                                     {
-                                        Console.WriteLine("Invalid coordinates. Please enter coordinates within the grid.");
+                                        TextPresentation.WriteCenteredText("Invalid coordinates. Please enter coordinates within the grid.", Console.WindowHeight / 2 + 9);
                                     }
                                 }
                             }
                             else
                             {
-                                Console.WriteLine("No damaged ships to repair. Please choose another action.");
+                                TextPresentation.WriteCenteredText("No damaged ships to repair. Choose another action.", Console.WindowHeight / 2 + 9);
                             }
                         }
                         break;
                 }
             }
         }
-
-
 
         private void HandleComputerTurn(Player computerPlayer)
         {
@@ -209,31 +213,24 @@ namespace Battleship
                 .Where(cell => cell.IsHit && cell.Ship != null && !cell.Ship.IsSunk())
                 .ToList();
 
-            if (!damagedCells.Any())
-            {
-                computerPlayer.ShootingStrategy?.Shoot(computerPlayer);
-                Console.WriteLine($"{computerPlayer.Name} has completed its turn by shooting.");
-                return;
-            }
-
-            bool shouldRepair = random.Next(1, 101) <= 30;
+            bool shouldRepair = random.Next(1, 101) <= 30 && damagedCells.Any();
 
             if (shouldRepair)
             {
                 var repairAction = computerPlayer.Actions.OfType<Repair>().FirstOrDefault();
-
                 if (repairAction != null)
                 {
                     Cell targetCell = damagedCells[random.Next(damagedCells.Count)];
                     repairAction.Execute(computerPlayer, targetCell);
-                    Console.WriteLine(
-                        $"{computerPlayer.Name} chose to repair a damaged cell at ({targetCell.Row}, {targetCell.Column}).");
+                    TextPresentation.WriteCenteredText($"{computerPlayer.Name} chose to repair a damaged cell at ({targetCell.Row}), ({targetCell.Column}).");
+                    Thread.Sleep(1500); // Give time to read the message
                 }
-                else
-                {
-                    computerPlayer.ShootingStrategy?.Shoot(computerPlayer);
-                    Console.WriteLine($"{computerPlayer.Name} has completed its turn by shooting.");
-                }
+            }
+            else
+            {
+                computerPlayer.ShootingStrategy?.Shoot(computerPlayer);
+                TextPresentation.WriteCenteredText($"{computerPlayer.Name} has completed its turn by shooting.");
+                Thread.Sleep(1500); // Give time to read the message
             }
         }
     }

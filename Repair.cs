@@ -30,9 +30,15 @@ namespace Battleship
                 targetCell.WasRepaired = true;
                 Ship associatedShip = targetCell.Ship;
 
-                if (associatedShip != null && associatedShip.HitTaken > 0)
+                if (associatedShip != null)
                 {
-                    associatedShip.HitTaken--;
+                    associatedShip.HitTaken = Math.Max(0, associatedShip.HitTaken - 1);
+
+                    // Re-evaluate if the ship was previously marked as sunk
+                    if (associatedShip.IsSunk() && !player.Ships.Contains(associatedShip))
+                    {
+                        player.Ships.Add(associatedShip);
+                    }
                 }
             }
         }
