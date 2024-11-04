@@ -117,7 +117,6 @@ namespace Battleship
 
         private void DisplayGameState(Player player, GameController gameController)
         {
-            //Console.WriteLine($"{player.Name}'s Grid:".PadRight(25) + $"{gameController.GetOpponent().Name}'s Grid:");
             _display.DrawGrid(player.PlayerGrid, player.OpponentGrid, hideShips: true);
         }
 
@@ -134,8 +133,6 @@ namespace Battleship
 
             while (!validAction)
             {
-                // Console.Clear();
-                // DisplayGameState(currentPlayer, _gameController);
                 menu.Draw();
 
                 var key = Console.ReadKey(true);
