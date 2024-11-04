@@ -14,10 +14,9 @@ namespace Battleship
 
             if (!damagedCells.Any())
             {
-                // Move cursor to the next line and clear it to ensure the message displays correctly
                 int messageLineY = Console.CursorTop + 1;
                 Console.SetCursorPosition(0, messageLineY);
-                Console.WriteLine("No damaged ships to repair. Choose another action.");
+                TextPresentation.WriteCenteredText("No damaged ships to repair. Choose another action.", 24);
                 return false;
             }
 

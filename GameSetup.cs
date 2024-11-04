@@ -46,7 +46,6 @@ namespace Battleship
                 new("Intelligent Strategy", new IntelligentShooting())
             };
 
-            // Position the menu directly below the text
             var strategyMenu = new SimpleMenu<IShootingStrategy>(strategies, specificY: centerY + 1);
             var navigator = new ActionNavigator<IShootingStrategy>(strategyMenu);
 
@@ -72,7 +71,6 @@ namespace Battleship
             var human = new Human(playerName, playerGrid, computerGrid, ships.ToList(), playerActions, new UserShooting());
             var computer = new Computer("Computer", computerGrid, playerGrid, ships.Select(s => s.Clone()).ToList(), computerActions, computerStrategy);
 
-            // Set the Player property for each grid
             playerGrid.Player = human;
 
             var gameController = new GameController(human, computer, _display);
@@ -82,7 +80,7 @@ namespace Battleship
         private void RunGameLoop(GameController gameController)
         {
             bool gameOver = false;
-            Player lastPlayer = null; //To be able to use the name in the Game Over announcement
+            Player lastPlayer = null; 
 
             Console.Clear();
             TextPresentation.WriteCenteredTextWithDelay("Deploying fleet...");
@@ -101,11 +99,11 @@ namespace Battleship
                 else if (currentPlayer is Computer)
                 {
                     HandleComputerTurn(currentPlayer);
-                    System.Threading.Thread.Sleep(1500); // Brief pause for transition
+                    System.Threading.Thread.Sleep(1500); 
                 }
 
                 gameOver = gameController.CheckGameOver();
-                lastPlayer = currentPlayer; //To be able to use the name in the Game Over announcement
+                lastPlayer = currentPlayer; 
                 gameController.SwitchPlayer();
             }
 
@@ -122,48 +120,33 @@ namespace Battleship
 
         private void HandleHumanTurn(Player currentPlayer)
         {
-            var menuItem = new List<MenuItem<IPlayerAction>>
+            var menuItems = new List<MenuItem<IPlayerAction>>
             {
                 new("Attack", currentPlayer.Actions[0]),
                 new("Repair", currentPlayer.Actions[1])
             };
 
-            var menu = new SimpleMenu<IPlayerAction>(menuItem, belowGrid: true);
+            var menu = new SimpleMenu<IPlayerAction>(menuItems, belowGrid: true);
+            var navigator = new ActionNavigator<IPlayerAction>(menu);
             bool validAction = false;
 
             while (!validAction)
             {
-                menu.Draw();
+                var selectedAction = navigator.Navigate();
 
-                var key = Console.ReadKey(true);
-                switch (key.Key)
+                if (selectedAction is Attack)
                 {
-                    case ConsoleKey.UpArrow:
-                        menu.Up();
-                        break;
-                    case ConsoleKey.DownArrow:
-                        menu.Down();
-                        break;
-                    case ConsoleKey.Enter:
-                        var selectedItem = menu.GetSelectedItem();
-                        var action = selectedItem;
-
-                        if (action is Attack attack)
-                        {
-                            currentPlayer.ShootingStrategy.Shoot(currentPlayer);
-                            validAction = true;
-                        }
-                        else if (action is Repair repair)
-                        {
-                            UserRepairing userRepair = new UserRepairing();
-                            bool repairSuccess = userRepair.HandleRepair(currentPlayer);
-                            validAction = repairSuccess;
-                        }
-                        break;
+                    currentPlayer.ShootingStrategy.Shoot(currentPlayer);
+                    validAction = true;
+                }
+                else if (selectedAction is Repair)
+                {
+                    UserRepairing userRepair = new UserRepairing();
+                    bool repairSuccess = userRepair.HandleRepair(currentPlayer);
+                    validAction = repairSuccess; 
                 }
             }
         }
-
 
         private void HandleComputerTurn(Player computerPlayer)
         {
