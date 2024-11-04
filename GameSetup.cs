@@ -96,6 +96,7 @@ namespace Battleship
                 {
                     DisplayGameState(currentPlayer, gameController);
                     HandleHumanTurn(currentPlayer);
+                    System.Threading.Thread.Sleep(1500);
                 }
                 else if (currentPlayer is Computer)
                 {
@@ -133,8 +134,8 @@ namespace Battleship
 
             while (!validAction)
             {
-                //Console.Clear();
-                //DisplayGameState(currentPlayer, _gameController);
+                // Console.Clear();
+                // DisplayGameState(currentPlayer, _gameController);
                 menu.Draw();
 
                 var key = Console.ReadKey(true);
@@ -157,52 +158,15 @@ namespace Battleship
                         }
                         else if (action is Repair repair)
                         {
-                            if (repair.AttemptRepair(currentPlayer))
-                            {
-                                Cell targetCell;
-                                bool validCell = false;
-
-                                while (!validCell)
-                                {
-                                    Console.SetCursorPosition(0, Console.WindowHeight / 2 + 9);
-                                    Console.WriteLine("Enter coordinates of the cell to repair:");
-
-                                    Console.Write("Row (0-" + (Grid.GridSize - 1) + "): ");
-                                    int row = int.Parse(Console.ReadLine() ?? "0");
-
-                                    Console.Write("Column (0-" + (Grid.GridSize - 1) + "): ");
-                                    int col = int.Parse(Console.ReadLine() ?? "0");
-
-                                    if (row >= 0 && row < Grid.GridSize && col >= 0 && col < Grid.GridSize)
-                                    {
-                                        targetCell = currentPlayer.PlayerGrid.Grids[row, col];
-
-                                        if (targetCell.IsHit)
-                                        {
-                                            repair.Execute(currentPlayer, targetCell);
-                                            validCell = true;
-                                            validAction = true;
-                                        }
-                                        else
-                                        {
-                                            TextPresentation.WriteCenteredText("This cell is not damaged. Please choose a damaged cell.", Console.WindowHeight / 2 + 9);
-                                        }
-                                    }
-                                    else
-                                    {
-                                        TextPresentation.WriteCenteredText("Invalid coordinates. Please enter coordinates within the grid.", Console.WindowHeight / 2 + 9);
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                TextPresentation.WriteCenteredText("No damaged ships to repair. Choose another action.", Console.WindowHeight / 2 + 9);
-                            }
+                            UserRepairing userRepair = new UserRepairing();
+                            bool repairSuccess = userRepair.HandleRepair(currentPlayer);
+                            validAction = repairSuccess;
                         }
                         break;
                 }
             }
         }
+
 
         private void HandleComputerTurn(Player computerPlayer)
         {
