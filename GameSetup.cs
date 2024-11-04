@@ -184,14 +184,12 @@ namespace Battleship
                     Cell targetCell = damagedCells[random.Next(damagedCells.Count)];
                     repairAction.Execute(computerPlayer, targetCell);
                     TextPresentation.WriteCenteredText($"{computerPlayer.Name} chose to repair a damaged cell at ({targetCell.Row}), ({targetCell.Column}).");
-                    Thread.Sleep(1500); // Give time to read the message
                 }
             }
             else
             {
                 computerPlayer.ShootingStrategy?.Shoot(computerPlayer);
                 TextPresentation.WriteCenteredText($"{computerPlayer.Name} has completed its turn by shooting.");
-                Thread.Sleep(1500); // Give time to read the message
             }
         }
     }
