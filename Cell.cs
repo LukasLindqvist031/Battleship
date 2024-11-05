@@ -10,8 +10,8 @@ namespace Battleship
     {
         public int Row { get; set; }
         public int Column { get; set; }
-        public Ship Ship { get; set; } //Refers to a ship if there is one.
-        public bool IsHit { get; set; } //Checks to see if the cell has been hit.
+        public Ship Ship { get; set; } 
+        public bool IsHit { get; set; } 
         public bool WasRepaired { get; set; } = false;
 
         public Cell(int row, int column)
@@ -21,7 +21,7 @@ namespace Battleship
             IsHit = false;
         }
 
-        public bool IsEmpty() //Method to check if the cell is empty (no ship).
+        public bool IsEmpty() 
         {
             return Ship == null;
         }

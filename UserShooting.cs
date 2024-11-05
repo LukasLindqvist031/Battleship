@@ -10,12 +10,12 @@ namespace Battleship
     {
         public void Shoot(Player player)
         {
-            Grid opponentGrid = player.OpponentGrid;
-            Cell targetCell = GetValidTargetFromUser(opponentGrid);
+            var targetSelector = new TargetSelector(player.OpponentGrid);
+            Cell targetCell = targetSelector.GetValidTarget(forRepair: false);
 
             if (targetCell != null)
             {
-                Attack attack = new Attack(opponentGrid);
+                Attack attack = new Attack(player.OpponentGrid);
                 attack.Execute(player, targetCell);
 
                 if (targetCell.HasShip())
@@ -33,39 +33,6 @@ namespace Battleship
                 System.Threading.Thread.Sleep(1500);
             }
         }
-
-        private Cell GetValidTargetFromUser(Grid opponentGrid)
-        {
-
-            while (true)
-            {
-
-                Console.WriteLine("\nEnter target coordinates:");
-
-                Console.Write($"Row (0-{Grid.GridSize - 1}): ");
-                if (!int.TryParse(Console.ReadLine(), out int row) || row < 0 || row >= Grid.GridSize)
-                {
-                    Console.WriteLine("Invalid row number. Please enter a number between " + $"0 and {Grid.GridSize - 1}.");
-                    continue;
-                }
-
-                Console.Write($"Column (0-{Grid.GridSize - 1}): ");
-                if (!int.TryParse(Console.ReadLine(), out int col) || col < 0 || col >= Grid.GridSize)
-                {
-                    Console.WriteLine("Invalid column number. Please enter a number between " + $"0 and {Grid.GridSize - 1}.");
-                    continue;
-                }
-
-                Cell targetCell = opponentGrid.Grids[row, col];
-
-                if (targetCell.IsHit)
-                {
-                    Console.WriteLine("This cell has already been targeted. Please choose another location.");
-                    continue;
-                }
-
-                return targetCell;
-            }
-        }
     }
+
 }

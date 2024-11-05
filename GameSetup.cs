@@ -46,7 +46,6 @@ namespace Battleship
                 new("Intelligent Strategy", new IntelligentShooting())
             };
 
-            // Position the menu directly below the text
             var strategyMenu = new SimpleMenu<IShootingStrategy>(strategies, specificY: centerY + 1);
             var navigator = new ActionNavigator<IShootingStrategy>(strategyMenu);
 
@@ -72,7 +71,6 @@ namespace Battleship
             var human = new Human(playerName, playerGrid, computerGrid, ships.ToList(), playerActions, new UserShooting());
             var computer = new Computer("Computer", computerGrid, playerGrid, ships.Select(s => s.Clone()).ToList(), computerActions, computerStrategy);
 
-            // Set the Player property for each grid
             playerGrid.Player = human;
 
             var gameController = new GameController(human, computer, _display);
@@ -82,7 +80,7 @@ namespace Battleship
         private void RunGameLoop(GameController gameController)
         {
             bool gameOver = false;
-            Player lastPlayer = null; //To be able to use the name in the Game Over announcement
+            Player lastPlayer = null; 
 
             Console.Clear();
             TextPresentation.WriteCenteredTextWithDelay("Deploying fleet...");
@@ -96,15 +94,16 @@ namespace Battleship
                 {
                     DisplayGameState(currentPlayer, gameController);
                     HandleHumanTurn(currentPlayer);
+                    System.Threading.Thread.Sleep(1500);
                 }
                 else if (currentPlayer is Computer)
                 {
                     HandleComputerTurn(currentPlayer);
-                    System.Threading.Thread.Sleep(1500); // Brief pause for transition
+                    System.Threading.Thread.Sleep(1500); 
                 }
 
                 gameOver = gameController.CheckGameOver();
-                lastPlayer = currentPlayer; //To be able to use the name in the Game Over announcement
+                lastPlayer = currentPlayer; 
                 gameController.SwitchPlayer();
             }
 
@@ -116,7 +115,7 @@ namespace Battleship
 
         private void DisplayGameState(Player player, GameController gameController)
         {
-            _display.DrawGrid(player.PlayerGrid, player.OpponentGrid, hideShips: true, null, null);
+            _display.DrawGrid(player.PlayerGrid, player.OpponentGrid, hideShips: true);
         }
 
         private void HandleHumanTurn(Player currentPlayer)
@@ -126,134 +125,28 @@ namespace Battleship
                 new("Attack", currentPlayer.Actions[0]),
                 new("Repair", currentPlayer.Actions[1])
             };
+
             var menu = new SimpleMenu<IPlayerAction>(menuItems, belowGrid: true);
+            var navigator = new ActionNavigator<IPlayerAction>(menu);
+            bool validAction = false;
 
-            bool actionCompleted = false;
-            while (!actionCompleted)
+            while (!validAction)
             {
-                Console.Clear();
-                DisplayGameState(currentPlayer, _gameController); // Redraw the grid without highlighting
-                menu.Draw();
+                var selectedAction = navigator.Navigate();
 
-                var key = Console.ReadKey(true);
-                switch (key.Key)
+                if (selectedAction is Attack)
                 {
-                    case ConsoleKey.UpArrow:
-                        menu.Up();
-                        break;
-                    case ConsoleKey.DownArrow:
-                        menu.Down();
-                        break;
-                    case ConsoleKey.Enter:
-                        var selectedAction = menu.GetSelectedItem();
-                        if (selectedAction is Attack)
-                        {
-                            actionCompleted = HandleAttack(currentPlayer);
-                        }
-                        else if (selectedAction is Repair repair)
-                        {
-                            actionCompleted = HandleRepair(currentPlayer, repair);
-                        }
-                        break;
+                    currentPlayer.ShootingStrategy.Shoot(currentPlayer);
+                    validAction = true;
+                }
+                else if (selectedAction is Repair)
+                {
+                    UserRepairing userRepair = new UserRepairing();
+                    bool repairSuccess = userRepair.HandleRepair(currentPlayer);
+                    validAction = repairSuccess; 
                 }
             }
         }
-
-        private bool HandleAttack(Player currentPlayer)
-        {
-            var navigator = currentPlayer.OpponentGridNavigator; // Use the existing navigator
-            while (true)
-            {
-                Console.Clear();
-                _display.DrawGrid(currentPlayer.PlayerGrid, currentPlayer.OpponentGrid, true, null, navigator);
-                TextPresentation.WriteCenteredText("Use arrow keys to move, Enter to attack, Esc to cancel", Console.WindowHeight - 2);
-
-                var key = Console.ReadKey(true);
-                switch (key.Key)
-                {
-                    case ConsoleKey.UpArrow:
-                        navigator.MoveUp();
-                        break;
-                    case ConsoleKey.DownArrow:
-                        navigator.MoveDown();
-                        break;
-                    case ConsoleKey.LeftArrow:
-                        navigator.MoveLeft();
-                        break;
-                    case ConsoleKey.RightArrow:
-                        navigator.MoveRight();
-                        break;
-                    case ConsoleKey.Enter:
-                        var targetCell = navigator.GetCurrentCell();
-                        if (!targetCell.IsHit)
-                        {
-                            currentPlayer.Actions.OfType<Attack>().First().Execute(currentPlayer, targetCell);
-                            return true;
-                        }
-                        else
-                        {
-                            TextPresentation.WriteCenteredText("This cell has already been attacked. Choose another.", Console.WindowHeight - 1);
-                        }
-                        break;
-                    case ConsoleKey.Escape:
-                        return false;
-                }
-            }
-        }
-
-        private bool HandleRepair(Player currentPlayer, Repair repair)
-        {
-            if (!repair.AttemptRepair(currentPlayer))
-            {
-                Console.Clear();
-                _display.DrawGrid(currentPlayer.PlayerGrid, currentPlayer.OpponentGrid, true, null, null);
-                TextPresentation.WriteCenteredText("No damaged ships to repair. Choose another action.", Console.WindowHeight - 3);
-                TextPresentation.WriteCenteredText("Press any key to continue...", Console.WindowHeight - 2);
-                Console.ReadKey(true);
-                return false;
-            }
-
-            var navigator = currentPlayer.PlayerGridNavigator;
-            while (true)
-            {
-                Console.Clear();
-                _display.DrawGrid(currentPlayer.PlayerGrid, currentPlayer.OpponentGrid, true, navigator, null);
-                TextPresentation.WriteCenteredText("Use arrow keys to move, Enter to repair, Esc to cancel", Console.WindowHeight - 3);
-
-                var key = Console.ReadKey(true);
-                switch (key.Key)
-                {
-                    case ConsoleKey.UpArrow:
-                        navigator.MoveUp();
-                        break;
-                    case ConsoleKey.DownArrow:
-                        navigator.MoveDown();
-                        break;
-                    case ConsoleKey.LeftArrow:
-                        navigator.MoveLeft();
-                        break;
-                    case ConsoleKey.RightArrow:
-                        navigator.MoveRight();
-                        break;
-                    case ConsoleKey.Enter:
-                        var targetCell = navigator.GetCurrentCell();
-                        if (targetCell.IsHit && targetCell.HasShip())
-                        {
-                            repair.Execute(currentPlayer, targetCell);
-                            return true;
-                        }
-                        else
-                        {
-                            TextPresentation.WriteCenteredText("This cell cannot be repaired. Choose another.", Console.WindowHeight - 2);
-                        }
-                        break;
-                    case ConsoleKey.Escape:
-                        return false;
-                }
-            }
-        }
-
-
 
         private void HandleComputerTurn(Player computerPlayer)
         {
@@ -274,14 +167,12 @@ namespace Battleship
                     Cell targetCell = damagedCells[random.Next(damagedCells.Count)];
                     repairAction.Execute(computerPlayer, targetCell);
                     TextPresentation.WriteCenteredText($"{computerPlayer.Name} chose to repair a damaged cell at ({targetCell.Row}), ({targetCell.Column}).");
-                    Thread.Sleep(1500); // Give time to read the message
                 }
             }
             else
             {
                 computerPlayer.ShootingStrategy?.Shoot(computerPlayer);
                 TextPresentation.WriteCenteredText($"{computerPlayer.Name} has completed its turn by shooting.");
-                Thread.Sleep(1500); // Give time to read the message
             }
         }
     }

@@ -10,18 +10,6 @@ namespace Battleship
     {
         public string Name { get; } = "Repair";
 
-        public bool AttemptRepair(Player player)
-        {
-            foreach (var cell in player.PlayerGrid)
-            {
-                if (cell.IsHit && cell.HasShip())
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
-
         public void Execute(Player player, Cell targetCell)
         {
             if (targetCell != null && targetCell.IsHit)
@@ -34,7 +22,6 @@ namespace Battleship
                 {
                     associatedShip.HitTaken = Math.Max(0, associatedShip.HitTaken - 1);
 
-                    // Re-evaluate if the ship was previously marked as sunk
                     if (associatedShip.IsSunk() && !player.Ships.Contains(associatedShip))
                     {
                         player.Ships.Add(associatedShip);

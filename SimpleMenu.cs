@@ -20,25 +20,21 @@ namespace Battleship
             SelectedIndex = 0;
             BelowGrid = belowGrid;
 
-            // Calculate menu dimensions
-            int menuWidth = items.Max(item => item.Text.Length) + 4; // +4 for arrow and padding
+            int menuWidth = items.Max(item => item.Text.Length) + 4; 
             int menuHeight = items.Count;
 
             if (specificY.HasValue)
             {
-                // Use specific Y position when provided
                 MenuTop = specificY.Value;
                 MenuLeft = TextPresentation.GetCenterX(menuWidth);
             }
             else if (belowGrid)
             {
-                // Position menu below the player's grid (left side)
                 MenuTop = (Console.WindowHeight / 2) + 6;
-                MenuLeft = TextPresentation.GetCenterX(menuWidth * 2) - menuWidth * 2 + 2; // Align with player grid
+                MenuLeft = TextPresentation.GetCenterX(menuWidth * 2) - menuWidth * 2 + 2; 
             }
             else
             {
-                // Original centered positioning
                 MenuTop = TextPresentation.GetCenterY(menuHeight);
                 MenuLeft = TextPresentation.GetCenterX(menuWidth);
             }
@@ -48,14 +44,12 @@ namespace Battleship
         {
             Console.CursorVisible = false;
 
-            // Clear menu area
             for (int i = 0; i < MenuItems.Count; i++)
             {
                 Console.SetCursorPosition(MenuLeft, MenuTop + i);
                 Console.Write(new string(' ', MenuItems[i].Text.Length + 4));
             }
 
-            // Draw menu items
             for (int i = 0; i < MenuItems.Count; i++)
             {
                 Console.SetCursorPosition(MenuLeft, MenuTop + i);
