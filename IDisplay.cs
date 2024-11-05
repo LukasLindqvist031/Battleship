@@ -8,6 +8,6 @@ namespace Battleship
 {
     public interface IDisplay
     {
-        void DrawGrid(Grid playerGrid, Grid opponentGrid, bool hideShips);
+        public void DrawGrid(Grid playerGrid, Grid opponentGrid, bool hideShips, GridNavigator playerNavigator = null, GridNavigator opponentNavigator = null);
     }
 }

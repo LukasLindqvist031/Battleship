@@ -116,25 +116,23 @@ namespace Battleship
 
         private void DisplayGameState(Player player, GameController gameController)
         {
-            //Console.WriteLine($"{player.Name}'s Grid:".PadRight(25) + $"{gameController.GetOpponent().Name}'s Grid:");
-            _display.DrawGrid(player.PlayerGrid, player.OpponentGrid, hideShips: true);
+            _display.DrawGrid(player.PlayerGrid, player.OpponentGrid, hideShips: true, null, null);
         }
 
         private void HandleHumanTurn(Player currentPlayer)
         {
-            var menuItem = new List<MenuItem<IPlayerAction>>
+            var menuItems = new List<MenuItem<IPlayerAction>>
             {
                 new("Attack", currentPlayer.Actions[0]),
                 new("Repair", currentPlayer.Actions[1])
             };
+            var menu = new SimpleMenu<IPlayerAction>(menuItems, belowGrid: true);
 
-            var menu = new SimpleMenu<IPlayerAction>(menuItem, belowGrid: true);
-            bool validAction = false;
-
-            while (!validAction)
+            bool actionCompleted = false;
+            while (!actionCompleted)
             {
-                //Console.Clear();
-                //DisplayGameState(currentPlayer, _gameController);
+                Console.Clear();
+                DisplayGameState(currentPlayer, _gameController); // Redraw the grid without highlighting
                 menu.Draw();
 
                 var key = Console.ReadKey(true);
@@ -147,62 +145,115 @@ namespace Battleship
                         menu.Down();
                         break;
                     case ConsoleKey.Enter:
-                        var selectedItem = menu.GetSelectedItem();
-                        var action = selectedItem;
-
-                        if (action is Attack attack)
+                        var selectedAction = menu.GetSelectedItem();
+                        if (selectedAction is Attack)
                         {
-                            currentPlayer.ShootingStrategy.Shoot(currentPlayer);
-                            validAction = true;
+                            actionCompleted = HandleAttack(currentPlayer);
                         }
-                        else if (action is Repair repair)
+                        else if (selectedAction is Repair repair)
                         {
-                            if (repair.AttemptRepair(currentPlayer))
-                            {
-                                Cell targetCell;
-                                bool validCell = false;
-
-                                while (!validCell)
-                                {
-                                    Console.SetCursorPosition(0, Console.WindowHeight / 2 + 9);
-                                    Console.WriteLine("Enter coordinates of the cell to repair:");
-
-                                    Console.Write("Row (0-" + (Grid.GridSize - 1) + "): ");
-                                    int row = int.Parse(Console.ReadLine() ?? "0");
-
-                                    Console.Write("Column (0-" + (Grid.GridSize - 1) + "): ");
-                                    int col = int.Parse(Console.ReadLine() ?? "0");
-
-                                    if (row >= 0 && row < Grid.GridSize && col >= 0 && col < Grid.GridSize)
-                                    {
-                                        targetCell = currentPlayer.PlayerGrid.Grids[row, col];
-
-                                        if (targetCell.IsHit)
-                                        {
-                                            repair.Execute(currentPlayer, targetCell);
-                                            validCell = true;
-                                            validAction = true;
-                                        }
-                                        else
-                                        {
-                                            TextPresentation.WriteCenteredText("This cell is not damaged. Please choose a damaged cell.", Console.WindowHeight / 2 + 9);
-                                        }
-                                    }
-                                    else
-                                    {
-                                        TextPresentation.WriteCenteredText("Invalid coordinates. Please enter coordinates within the grid.", Console.WindowHeight / 2 + 9);
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                TextPresentation.WriteCenteredText("No damaged ships to repair. Choose another action.", Console.WindowHeight / 2 + 9);
-                            }
+                            actionCompleted = HandleRepair(currentPlayer, repair);
                         }
                         break;
                 }
             }
         }
+
+        private bool HandleAttack(Player currentPlayer)
+        {
+            var navigator = currentPlayer.OpponentGridNavigator; // Use the existing navigator
+            while (true)
+            {
+                Console.Clear();
+                _display.DrawGrid(currentPlayer.PlayerGrid, currentPlayer.OpponentGrid, true, null, navigator);
+                TextPresentation.WriteCenteredText("Use arrow keys to move, Enter to attack, Esc to cancel", Console.WindowHeight - 2);
+
+                var key = Console.ReadKey(true);
+                switch (key.Key)
+                {
+                    case ConsoleKey.UpArrow:
+                        navigator.MoveUp();
+                        break;
+                    case ConsoleKey.DownArrow:
+                        navigator.MoveDown();
+                        break;
+                    case ConsoleKey.LeftArrow:
+                        navigator.MoveLeft();
+                        break;
+                    case ConsoleKey.RightArrow:
+                        navigator.MoveRight();
+                        break;
+                    case ConsoleKey.Enter:
+                        var targetCell = navigator.GetCurrentCell();
+                        if (!targetCell.IsHit)
+                        {
+                            currentPlayer.Actions.OfType<Attack>().First().Execute(currentPlayer, targetCell);
+                            return true;
+                        }
+                        else
+                        {
+                            TextPresentation.WriteCenteredText("This cell has already been attacked. Choose another.", Console.WindowHeight - 1);
+                        }
+                        break;
+                    case ConsoleKey.Escape:
+                        return false;
+                }
+            }
+        }
+
+        private bool HandleRepair(Player currentPlayer, Repair repair)
+        {
+            if (!repair.AttemptRepair(currentPlayer))
+            {
+                Console.Clear();
+                _display.DrawGrid(currentPlayer.PlayerGrid, currentPlayer.OpponentGrid, true, null, null);
+                TextPresentation.WriteCenteredText("No damaged ships to repair. Choose another action.", Console.WindowHeight - 3);
+                TextPresentation.WriteCenteredText("Press any key to continue...", Console.WindowHeight - 2);
+                Console.ReadKey(true);
+                return false;
+            }
+
+            var navigator = currentPlayer.PlayerGridNavigator;
+            while (true)
+            {
+                Console.Clear();
+                _display.DrawGrid(currentPlayer.PlayerGrid, currentPlayer.OpponentGrid, true, navigator, null);
+                TextPresentation.WriteCenteredText("Use arrow keys to move, Enter to repair, Esc to cancel", Console.WindowHeight - 3);
+
+                var key = Console.ReadKey(true);
+                switch (key.Key)
+                {
+                    case ConsoleKey.UpArrow:
+                        navigator.MoveUp();
+                        break;
+                    case ConsoleKey.DownArrow:
+                        navigator.MoveDown();
+                        break;
+                    case ConsoleKey.LeftArrow:
+                        navigator.MoveLeft();
+                        break;
+                    case ConsoleKey.RightArrow:
+                        navigator.MoveRight();
+                        break;
+                    case ConsoleKey.Enter:
+                        var targetCell = navigator.GetCurrentCell();
+                        if (targetCell.IsHit && targetCell.HasShip())
+                        {
+                            repair.Execute(currentPlayer, targetCell);
+                            return true;
+                        }
+                        else
+                        {
+                            TextPresentation.WriteCenteredText("This cell cannot be repaired. Choose another.", Console.WindowHeight - 2);
+                        }
+                        break;
+                    case ConsoleKey.Escape:
+                        return false;
+                }
+            }
+        }
+
+
 
         private void HandleComputerTurn(Player computerPlayer)
         {
