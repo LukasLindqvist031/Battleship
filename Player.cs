@@ -47,15 +47,11 @@ namespace Battleship
             if (shipToRemove != null)
             {
                 Ships.Remove(shipToRemove);
-                Console.WriteLine($"Ship of length {shipToRemove.Length} has been removed.");
             }
             else
             {
                 Console.WriteLine("Error: Sunk ship could not be found in the player's list.");
             }
         }
-
-
-        // Any other methods that were in the original Player class...
     }
 }
