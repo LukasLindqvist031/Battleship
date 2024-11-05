@@ -38,11 +38,20 @@ namespace Battleship
             return Ships.All(ship => ship.IsSunk());
         }
 
-        public void RemoveSunkShip(Ship ship)
+        public void RemoveSunkShip(Ship sunkShip)
         {
-            Ships.Remove(ship);
-        }
+            // Find the ship in the player's list based on a unique property, such as length
+            var shipToRemove = Ships.FirstOrDefault(ship => ship.Length == sunkShip.Length &&
+                                                            ship.PlacedOnCell.SequenceEqual(sunkShip.PlacedOnCell));
 
-        // Any other methods that were in the original Player class...
+            if (shipToRemove != null)
+            {
+                Ships.Remove(shipToRemove);
+            }
+            else
+            {
+                Console.WriteLine("Error: Sunk ship could not be found in the player's list.");
+            }
+        }
     }
 }
