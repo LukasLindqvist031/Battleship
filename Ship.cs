@@ -18,7 +18,7 @@ namespace Battleship
         {
             Length = length;
             PlacedOnCell = new List<Cell>();
-            HitTaken = 0; 
+            HitTaken = 0;
         }
 
         public bool IsSunk()

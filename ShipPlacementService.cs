@@ -29,7 +29,7 @@ namespace Battleship
                 }
             }
         }
-        private bool TryPlaceShip(Grid grid, Cell startCell, Ship ship, bool horizontal) 
+        private bool TryPlaceShip(Grid grid, Cell startCell, Ship ship, bool horizontal) //LINQ-kravet
         {
             var shipCells = horizontal
                 ? grid.Where(c => c.Row == startCell.Row &&
@@ -59,6 +59,5 @@ namespace Battleship
 
             return neighbors.All(cell => cell.IsEmpty());
         }
-
     }
 }

@@ -9,6 +9,6 @@ namespace Battleship
     public interface IPlayerAction
     {
         string Name { get; }
-        void Execute(Player player, Cell targetCell); 
+        void Execute(Player player, Cell targetCell);
     }
 }

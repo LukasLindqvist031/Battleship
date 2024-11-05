@@ -44,5 +44,4 @@ namespace Battleship
             return _grid.Grids[CurrentRow, CurrentCol];
         }
     }
-
 }

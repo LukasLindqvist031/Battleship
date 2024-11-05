@@ -27,6 +27,11 @@ namespace Battleship
             return _currentPlayer;
         }
 
+        public Player GetOpponent()
+        {
+            return _currentPlayer == _humanPlayer ? _computerPlayer : _humanPlayer;
+        }
+
         public bool CheckGameOver()
         {
             bool humanShipsDestroyed = _humanPlayer.AreAllShipsSunk();
@@ -34,7 +39,7 @@ namespace Battleship
 
             if (humanShipsDestroyed || computerShipsDestroyed)
             {
-                _currentPlayer = humanShipsDestroyed ? _computerPlayer : _humanPlayer; 
+                _currentPlayer = humanShipsDestroyed ? _computerPlayer : _humanPlayer; // Set winner as current player
                 _isGameOver = true;
                 return true;
             }

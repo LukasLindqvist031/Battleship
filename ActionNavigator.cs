@@ -36,6 +36,7 @@ namespace Battleship
                     case ConsoleKey.Enter:
                         return _menu.GetSelectedItem();
                     default:
+                        Console.WriteLine("Invalid key. Use arrows to navigate and Enter to select.");
                         break;
                 }
             }

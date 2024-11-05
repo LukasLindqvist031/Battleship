@@ -8,7 +8,7 @@ namespace Battleship
     {
         public const int GridSize = 10;
         public Cell[,] Grids { get; set; }
-        public Player Player { get; set; } 
+        public Player Player { get; set; }  // Added Player property
 
         public Grid()
         {
