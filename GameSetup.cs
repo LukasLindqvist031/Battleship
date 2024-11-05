@@ -65,7 +65,8 @@ namespace Battleship
             var playerActions = new List<IPlayerAction> { new Attack(computerGrid), new Repair() };
             var computerActions = new List<IPlayerAction> { new Attack(playerGrid), new Repair() };
 
-            Ship[] ships = { new Ship(5), new Ship(4), new Ship(3), new Ship(2), new Ship(1) };
+            Ship[] ships = { new Ship(2),new Ship(1) };
+            //Ship[] ships = { new Ship(5), new Ship(4), new Ship(3), new Ship(2), new Ship(1) };
             _shipPlacementService.PlaceShipRandomly(playerGrid, ships);
             _shipPlacementService.PlaceShipRandomly(computerGrid, ships.Select(s => s.Clone()).ToArray());
 
@@ -116,7 +117,7 @@ namespace Battleship
 
         private void DisplayGameState(Player player, GameController gameController)
         {
-            _display.DrawGrid(player.PlayerGrid, player.OpponentGrid, hideShips: true, null, null);
+            _display.DrawGrid(player.PlayerGrid, player.OpponentGrid, hideShips: false, null, null);
         }
 
         private void HandleHumanTurn(Player currentPlayer)
